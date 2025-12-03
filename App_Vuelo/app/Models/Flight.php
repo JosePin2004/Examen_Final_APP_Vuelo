@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; // <--- ¡ESTA LÍNEA FALTA!
 use Illuminate\Database\Eloquent\Model;
 
 class Flight extends Model
 {
     use HasFactory;
 
-    // Campos que permitimos llenar masivamente
     protected $fillable = [
         'origin',
         'destination',
@@ -18,7 +18,6 @@ class Flight extends Model
         'image_url',
     ];
 
-    // Relación: Un vuelo tiene muchas reservas
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
