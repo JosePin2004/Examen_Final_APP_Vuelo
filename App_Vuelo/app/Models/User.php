@@ -44,4 +44,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relación: Un usuario puede tener muchas reservas
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+    
+    // Función auxiliar para saber si es admin (útil para el Frontend después)
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }
