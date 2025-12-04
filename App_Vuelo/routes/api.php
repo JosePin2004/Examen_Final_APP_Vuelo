@@ -2,25 +2,21 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
 use App\Http\Controllers\Api\FlightController;
-
-// Ruta pública para ver el catálogo de vuelos
-Route::get('/flights', [FlightController::class, 'index']);
-
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ReservationController; // 1. ¡IMPORTANTE: ESTA LÍNEA DEBE ESTAR ARRIBA!
 
-// Rutas Públicas de Autenticación
+// Rutas Públicas
+Route::get('/flights', [FlightController::class, 'index']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Rutas Protegidas (Solo usuarios logueados pueden entrar aquí)
+// Rutas Protegidas (Aquí es donde faltaba código)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    
-    // Aquí pondremos las reservas más adelante
+
+    // 2. AGREGA ESTAS LÍNEAS SI NO ESTÁN:
+    Route::get('/reservations', [ReservationController::class, 'index']);
+    Route::post('/reservations', [ReservationController::class, 'store']);
+    Route::put('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
 });
