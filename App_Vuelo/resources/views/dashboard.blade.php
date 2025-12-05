@@ -10,7 +10,7 @@
 
     <nav class="bg-blue-600 p-4 shadow-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-white text-2xl font-bold">✈️ App Vuelo</h1>
+            <h1 class="text-white text-2xl font-bold">✈ App Vuelo</h1>
             <div>
                 <span id="user-name" class="text-white font-semibold mr-4">Cargando usuario...</span>
                 <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition">
@@ -53,14 +53,14 @@
                 const response = await fetch('/api/user', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`, // Enviamos la llave
+                        'Authorization': Bearer ${token}, // Enviamos la llave
                         'Accept': 'application/json'
                     }
                 });
 
                 if (response.ok) {
                     const user = await response.json();
-                    document.getElementById('user-name').textContent = `Hola, ${user.name}`;
+                    document.getElementById('user-name').textContent = Hola, ${user.name};
                 }
             } catch (error) {
                 console.error("Error cargando usuario:", error);
@@ -74,7 +74,7 @@
                 const response = await fetch('/api/reservations', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': Bearer ${token},
                         'Accept': 'application/json'
                     }
                 });
@@ -124,7 +124,7 @@
             // Opcional: Llamar a la API para invalidar el token en el servidor
             fetch('/api/logout', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': Bearer ${token} }
             });
 
             localStorage.removeItem('token'); // Borrar llave del navegador
