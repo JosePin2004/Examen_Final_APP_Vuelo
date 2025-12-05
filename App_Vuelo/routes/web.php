@@ -2,21 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 
+// 1. Ruta de bienvenida
 Route::get('/', function () {
     return view('welcome');
 });
 
-// ESTO ES LO NUEVO QUE NECESITAS AGREGAR:
-
-// 1. Ruta para mostrar la pantalla de Login
+// 2. Ruta para el LOGIN (¡Esta es la que te falta!)
 Route::get('/login', function () {
-    return view('auth.login'); // Busca el archivo resources/views/auth/login.blade.php
+    return view('auth.login'); 
 })->name('login');
 
-// 2. Ruta para mostrar el Dashboard después de loguearse
+// 3. Ruta para el DASHBOARD (¡También falta!)
 Route::get('/dashboard', function () {
-    return view('dashboard'); // Busca el archivo resources/views/dashboard.blade.php
+    return view('dashboard');
 });
 
-// Esta ya la tenías, la puedes dejar si la usas
+// 4. Tu ruta de reservas
 Route::view('/ver-reservas', 'reservas');

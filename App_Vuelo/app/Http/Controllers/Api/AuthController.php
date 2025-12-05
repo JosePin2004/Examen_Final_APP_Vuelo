@@ -1,66 +1,49 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api; // <--- Importante: Carpeta Api
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class AuthController extends Controller
 {
-    // 1. REGISTRO DE USUARIO
-    public function register(Request $request)
-    {
-        // Validamos que los datos vengan bien
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
-
-        // Creamos el usuario en la base de datos
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'user', // Por defecto todos son usuarios normales
-        ]);
-
-        // Devolvemos el token de acceso para que pueda navegar
-        return response()->json([
-            'message' => 'Usuario registrado exitosamente',
-            'token' => $user->createToken('API TOKEN')->plainTextToken
-        ], 201);
-    }
-
-    // 2. INICIO DE SESIÓN (LOGIN)
+    // Función para Iniciar Sesión
     public function login(Request $request)
     {
-        // Intentamos autenticar con email y contraseña
+        // 1. Validar que lleguen los datos
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // 2. Intentar autenticar con email y password
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Credenciales incorrectas (Email o Password mal)'
+                'message' => 'Credenciales incorrectas (Revisa tu correo o contraseña)'
             ], 401);
         }
 
-        // Si pasa, buscamos al usuario y le damos un token
-        $user = User::where('email', $request->email)->firstOrFail();
+        // 3. Si pasa, buscamos al usuario
+        $user = User::where('email', $request['email'])->firstOrFail();
 
+        // 4. CREAMOS EL TOKEN (La llave de acceso)
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 5. Devolvemos el token al Frontend
         return response()->json([
-            'message' => 'Login exitoso',
-            'user' => $user,
-            'token' => $user->createToken('API TOKEN')->plainTextToken
-        ], 200);
-    }
-    
-    // 3. CERRAR SESIÓN (LOGOUT)
-    public function logout()
-    {
-        auth()->user()->tokens()->delete();
-        
-        return response()->json([
-            'message' => 'Sesión cerrada correctamente'
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
         ]);
+    }
+
+    // Función para Cerrar Sesión (Logout)
+    public function logout(Request $request)
+    {
+        // Elimina el token actual para que no se pueda usar más
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
 }
