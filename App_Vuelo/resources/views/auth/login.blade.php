@@ -23,7 +23,7 @@
                 <label class="block text-gray-300 text-sm font-bold mb-2">Contraseña</label>
                 <input type="password" id="password" 
                     class="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" 
-                    placeholder="********" required>
+                    placeholder="" required>
             </div>
             
             <button type="submit" 
