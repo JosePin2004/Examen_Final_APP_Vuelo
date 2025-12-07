@@ -23,6 +23,8 @@
     </nav>
 
     <div class="max-w-7xl mx-auto mt-8 p-6">
+
+        <div id="admin-check-status" class="mb-4 hidden rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 text-sm"></div>
         
         <!-- TABS -->
         <div class="flex gap-4 mb-8 border-b border-gray-300">
@@ -162,9 +164,12 @@
 
         // VERIFICAR ACCESO DE ADMIN
         async function verifyAdminAccess() {
+            const statusEl = document.getElementById('admin-check-status');
             const token = localStorage.getItem('token');
             
             if (!token) {
+                statusEl.textContent = 'Sin token en localStorage. Redirigiendo a login...';
+                statusEl.classList.remove('hidden');
                 window.location.href = '/login';
                 return;
             }
@@ -175,19 +180,29 @@
                 });
 
                 if (response.status === 401) {
+                    statusEl.textContent = 'Token inválido/expirado (401). Borrando token y redirigiendo a login.';
+                    statusEl.classList.remove('hidden');
                     localStorage.removeItem('token');
                     window.location.href = '/login';
                     return;
                 }
 
                 const data = await response.json();
+                console.log('DEBUG /api/me ->', data);
+                statusEl.textContent = `Usuario: ${data?.user?.email || 'desconocido'} · Rol: ${data?.user?.role || 'sin rol'}`;
+                statusEl.classList.remove('hidden');
+                statusEl.classList.remove('bg-yellow-50','text-yellow-800','border-yellow-200');
+                statusEl.classList.add('bg-green-50','text-green-800','border-green-200');
                 
                 if (data.user.role !== 'admin') {
+                    statusEl.textContent += ' · Rol no admin, redirigiendo a dashboard';
                     window.location.href = '/dashboard';
                     return;
                 }
             } catch (error) {
                 console.error('Error al verificar acceso:', error);
+                statusEl.textContent = 'Error al llamar /api/me. Revisa consola.';
+                statusEl.classList.remove('hidden');
                 window.location.href = '/login';
             }
         }
