@@ -3,132 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - App Vuelo</title>
+    <title>Panel de Control - Vuelos</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <nav class="bg-blue-600 p-4 shadow-md">
+    <nav class="bg-blue-600 p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-white text-2xl font-bold">✈ App Vuelo</h1>
-            <div>
-                <span id="user-name" class="text-white font-semibold mr-4">Cargando usuario...</span>
-                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition">
-                    Cerrar Sesión
-                </button>
-            </div>
+            <h1 class="text-white text-2xl font-bold flex items-center gap-2">
+                ✈ App Vuelo
+            </h1>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
+                Cerrar Sesión
+            </button>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto mt-10 p-6">
+    <div class="max-w-7xl mx-auto mt-8 p-6 grid gap-8 md:grid-cols-3">
         
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Mis Reservaciones</h2>
-            
-            <div id="reservas-container" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <p class="text-gray-500">Cargando datos...</p>
+        <div class="md:col-span-1">
+            <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Nueva Reserva</h2>
+                <form id="createForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-600 text-sm font-bold mb-2">ID del Vuelo</label>
+                        <input type="number" id="flight_id" 
+                               class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                               placeholder="Ej: 3" required>
+                        <p class="text-xs text-gray-400 mt-1">Ingresa el ID de un vuelo existente (ej: 3)</p>
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-md flex justify-center items-center gap-2">
+                        <span>+</span> Reservar Vuelo
+                    </button>
+                </form>
             </div>
         </div>
 
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Mis Reservaciones</h2>
+                    <button onclick="loadReservations()" class="text-blue-500 text-sm hover:underline">🔄 Actualizar</button>
+                </div>
+                
+                <div id="reservas-container" class="space-y-4">
+                    <p class="text-gray-500 text-center py-10">Cargando...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 1. VERIFICAR TOKEN AL INICIAR
         const token = localStorage.getItem('token');
-        
-        if (!token) {
-            // Si no hay token, fuera de aquí
-            window.location.href = '/login';
+        if (!token) window.location.href = '/login';
+
+        // CARGAR AL INICIO
+        document.addEventListener('DOMContentLoaded', loadReservations);
+
+        // 1. FUNCIÓN CARGAR
+        async function loadReservations() {
+            try {
+                const response = await fetch('/api/reservations', {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                });
+
+                if (response.status === 401) return logout();
+                const data = await response.json();
+                renderReservations(data);
+            } catch (error) {
+                console.error(error);
+            }
         }
 
-        // Ejecutar carga de datos
-        document.addEventListener('DOMContentLoaded', () => {
-            loadUser();
-            loadReservations();
+        // 2. FUNCIÓN CREAR
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const flightId = document.getElementById('flight_id').value;
+
+            try {
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ flight_id: flightId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('✓ ¡Reserva creada exitosamente!');
+                    document.getElementById('flight_id').value = ''; // Limpiar campo
+                    loadReservations(); // Recargar lista
+                } else {
+                    alert('❌ Error: ' + (data.message || 'Verifica que el ID del vuelo exista.'));
+                }
+            } catch (error) {
+                alert('❌ Error de conexión');
+                console.error(error);
+            }
         });
 
-        // 2. FUNCIÓN PARA OBTENER DATOS DEL USUARIO
-        async function loadUser() {
+        // 3. FUNCIÓN ELIMINAR
+        async function deleteReservation(id) {
+            if(!confirm('¿Estás seguro de cancelar esta reserva?')) return;
+
             try {
-                const response = await fetch('/api/user', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': Bearer ${token}, // Enviamos la llave
-                        'Accept': 'application/json'
-                    }
+                const response = await fetch(`/api/reservations/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                 });
 
                 if (response.ok) {
-                    const user = await response.json();
-                    document.getElementById('user-name').textContent = Hola, ${user.name};
+                    loadReservations(); // Recargar lista
+                } else {
+                    alert('No se pudo eliminar.');
                 }
-            } catch (error) {
-                console.error("Error cargando usuario:", error);
-            }
-        }
-
-        // 3. FUNCIÓN PARA CARGAR RESERVAS
-        async function loadReservations() {
-            try {
-                // Asegúrate de que esta ruta '/api/reservations' exista en tu api.php
-                const response = await fetch('/api/reservations', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': Bearer ${token},
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.status === 401) {
-                    logout(); // Token vencido
-                    return;
-                }
-
-                const data = await response.json();
-                renderReservations(data);
-
             } catch (error) {
                 console.error(error);
-                document.getElementById('reservas-container').innerHTML = 
-                    '<p class="text-red-500">Error cargando reservaciones. Verifica que la ruta /api/reservations exista.</p>';
             }
         }
 
-        // 4. FUNCIÓN PARA DIBUJAR LAS TARJETAS HTML
+        // RENDERIZAR HTML
         function renderReservations(data) {
             const container = document.getElementById('reservas-container');
-            container.innerHTML = ''; // Limpiar mensaje de carga
+            container.innerHTML = '';
+            const lista = data.data || data;
 
-            // Si la respuesta viene envuelta en 'data', úsalo. Si no, usa 'data' directo.
-            const lista = data.data || data; 
+            // Filtrar solo las reservas no canceladas
+            const activeReservations = lista.filter(r => r.status !== 'cancelled');
 
-            if (lista.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">No tienes reservaciones aún.</p>';
+            if (activeReservations.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-10">No tienes reservaciones activas.</div>';
                 return;
             }
 
-            lista.forEach(reserva => {
-                // Personaliza esto con los campos reales de tu DB (ej: vuelo_id, fecha, etc)
-                const card = `
-                    <div class="border-l-4 border-blue-500 bg-gray-50 p-4 rounded shadow hover:shadow-lg transition">
-                        <h3 class="font-bold text-lg text-gray-800">Reserva #${reserva.id}</h3>
-                        <p class="text-gray-600 mt-2">Creada: ${new Date(reserva.created_at).toLocaleDateString()}</p>
+            activeReservations.forEach(reserva => {
+                const statusClass = reserva.status === 'confirmed' ? 'text-green-600' : 'text-yellow-600';
+                const statusText = reserva.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente';
+                
+                const item = `
+                    <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition bg-gray-50">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Reserva #${reserva.id}</p>
+                            <p class="text-lg font-bold text-gray-800">Vuelo ID: ${reserva.flight_id}</p>
+                            <p class="text-sm ${statusClass} font-medium">Estado: ${statusText}</p>
+                            <p class="text-xs text-gray-400 mt-1">📅 ${new Date(reserva.created_at).toLocaleDateString()}</p>
                         </div>
+                        <button onclick="deleteReservation(${reserva.id})" 
+                                class="bg-white text-red-500 border border-red-200 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-bold transition">
+                            Cancelar
+                        </button>
+                    </div>
                 `;
-                container.innerHTML += card;
+                container.innerHTML += item;
             });
         }
 
-        // 5. FUNCIÓN DE LOGOUT
         function logout() {
-            // Opcional: Llamar a la API para invalidar el token en el servidor
-            fetch('/api/logout', {
-                method: 'POST',
-                headers: { 'Authorization': Bearer ${token} }
-            });
-
-            localStorage.removeItem('token'); // Borrar llave del navegador
-            window.location.href = '/login';  // Redirigir
+            localStorage.removeItem('token');
+            window.location.href = '/login';
         }
     </script>
 </body>

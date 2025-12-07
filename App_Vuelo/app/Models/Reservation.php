@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <--- ¡AGREGA ESTA LÍNEA AQUÍ TAMBIÉN!
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
@@ -15,6 +15,13 @@ class Reservation extends Model
         'status',
         'comments'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => 'string',
+        ];
+    }
 
     public function user()
     {
