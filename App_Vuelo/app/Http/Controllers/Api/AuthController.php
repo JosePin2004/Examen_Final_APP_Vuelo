@@ -5,10 +5,41 @@ namespace App\Http\Controllers\Api; // <--- Importante: Carpeta Api
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
 class AuthController extends Controller
 {
+    // Función para Registrarse
+    public function register(Request $request)
+    {
+        // 1. Validar los datos del registro
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // 2. Crear el nuevo usuario
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'user', // Por defecto todos son usuarios normales
+        ]);
+
+        // 3. Crear token para que inicie sesión automáticamente
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 4. Devolver respuesta con el token
+        return response()->json([
+            'message' => 'Usuario registrado exitosamente',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
+        ], 201);
+    }
+
     // Función para Iniciar Sesión
     public function login(Request $request)
     {
@@ -45,5 +76,13 @@ class AuthController extends Controller
         // Elimina el token actual para que no se pueda usar más
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Sesión cerrada correctamente']);
+    }
+
+    // Función para obtener datos del usuario logueado
+    public function me(Request $request)
+    {
+        return response()->json([
+            'user' => $request->user()
+        ]);
     }
 }

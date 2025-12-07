@@ -23,7 +23,7 @@
                 <label class="block text-gray-300 text-sm font-bold mb-2">Contraseña</label>
                 <input type="password" id="password" 
                     class="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" 
-                    placeholder="" required>
+                    placeholder="********" required>
             </div>
             
             <button type="submit" 
@@ -33,6 +33,12 @@
         </form>
 
         <p id="mensaje" class="text-red-400 text-center mt-4 text-sm font-semibold hidden"></p>
+        
+        <div class="mt-6 text-center">
+            <p class="text-gray-400 text-sm">¿No tienes cuenta? 
+                <a href="/register" class="text-blue-400 hover:text-blue-300 font-bold">Regístrate aquí</a>
+            </p>
+        </div>
     </div>
 
     <script>

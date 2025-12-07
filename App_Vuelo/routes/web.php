@@ -12,6 +12,11 @@ Route::get('/login', function () {
     return view('auth.login'); 
 })->name('login');
 
+// 2.5. Ruta para el REGISTRO
+Route::get('/register', function () {
+    return view('auth.register');
+})->name('register');
+
 // 3. Ruta para el DASHBOARD (¡También falta!)
 Route::get('/dashboard', function () {
     return view('dashboard');

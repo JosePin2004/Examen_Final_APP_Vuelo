@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <--- ¡ESTA LÍNEA FALTA!
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Flight extends Model
@@ -17,6 +17,15 @@ class Flight extends Model
         'price',
         'image_url',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'departure_time' => 'datetime',
+            'arrival_time' => 'datetime',
+            'price' => 'decimal:2',
+        ];
+    }
 
     public function reservations()
     {

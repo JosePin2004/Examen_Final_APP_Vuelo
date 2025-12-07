@@ -18,5 +18,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // 2. AGREGA ESTAS LÍNEAS SI NO ESTÁN:
     Route::get('/reservations', [ReservationController::class, 'index']);
     Route::post('/reservations', [ReservationController::class, 'store']);
-    Route::put('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+    Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
 });
