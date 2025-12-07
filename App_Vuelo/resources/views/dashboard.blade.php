@@ -13,9 +13,14 @@
             <h1 class="text-white text-2xl font-bold flex items-center gap-2">
                 ✈ App Vuelo
             </h1>
-            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
-                Cerrar Sesión
-            </button>
+            <div class="flex gap-4 items-center">
+                <a href="/admin" id="adminLink" class="hidden bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded text-sm font-bold transition shadow">
+                    👨‍✈️ Panel Admin
+                </a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
+                    Cerrar Sesión
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -58,7 +63,25 @@
         if (!token) window.location.href = '/login';
 
         // CARGAR AL INICIO
-        document.addEventListener('DOMContentLoaded', loadReservations);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReservations();
+            checkIfAdmin();
+        });
+
+        // VERIFICAR SI ES ADMIN
+        async function checkIfAdmin() {
+            try {
+                const response = await fetch('/api/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.user.role === 'admin') {
+                    document.getElementById('adminLink').classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         // 1. FUNCIÓN CARGAR
         async function loadReservations() {
