@@ -71,18 +71,18 @@
 
             // Validar que las contraseñas coincidan
             if (password !== password_confirmation) {
-                mensaje.textContent = '❌ Las contraseñas no coinciden.';
+                mensaje.textContent = 'Las contraseñas no coinciden.';
                 mensaje.classList.remove('hidden');
                 return;
             }
 
             if (password.length < 8) {
-                mensaje.textContent = '❌ La contraseña debe tener mínimo 8 caracteres.';
+                mensaje.textContent = 'La contraseña debe tener mínimo 8 caracteres.';
                 mensaje.classList.remove('hidden');
                 return;
             }
 
-            mensaje.textContent = '⏳ Registrando...';
+            mensaje.textContent = 'Registrando...';
             mensaje.classList.remove('hidden');
 
             try {
@@ -103,16 +103,16 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert("✓ ¡Registro exitoso! Iniciando sesión...");
+                    alert("Registro exitoso! Iniciando sesión...");
                     localStorage.setItem('token', data.access_token);
                     window.location.href = '/dashboard';
                 } else {
-                    mensaje.textContent = '❌ ' + (data.message || 'Error al registrarse. Intenta otro correo.');
+                    mensaje.textContent = (data.message || 'Error al registrarse. Intenta otro correo.');
                     mensaje.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error(error);
-                mensaje.textContent = '❌ Error de conexión. Intenta más tarde.';
+                mensaje.textContent = 'Error de conexión. Intenta más tarde.';
                 mensaje.classList.remove('hidden');
             }
         });
