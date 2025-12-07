@@ -11,11 +11,11 @@
     <nav class="bg-blue-600 p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <h1 class="text-white text-2xl font-bold flex items-center gap-2">
-                ✈ App Vuelo
+                App Vuelo
             </h1>
             <div class="flex gap-4 items-center">
                 <a href="/admin" id="adminLink" class="hidden bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded text-sm font-bold transition shadow">
-                    👨‍✈️ Panel Admin
+                    Panel Admin
                 </a>
                 <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
                     Cerrar Sesión
@@ -121,10 +121,10 @@
                     document.getElementById('flight_id').value = ''; // Limpiar campo
                     loadReservations(); // Recargar lista
                 } else {
-                    alert('❌ Error: ' + (data.message || 'Verifica que el ID del vuelo exista.'));
+                    alert('Error: ' + (data.message || 'Verifica que el ID del vuelo exista.'));
                 }
             } catch (error) {
-                alert('❌ Error de conexión');
+                alert('Error de conexión');
                 console.error(error);
             }
         });

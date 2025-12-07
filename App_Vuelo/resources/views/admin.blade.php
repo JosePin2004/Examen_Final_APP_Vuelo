@@ -11,7 +11,7 @@
     <nav class="bg-red-600 p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <h1 class="text-white text-2xl font-bold flex items-center gap-2">
-                👨‍✈️ Panel Administrador - App Vuelo
+                Panel Administrador - App Vuelo
             </h1>
             <div class="flex gap-4 items-center">
                 <span class="text-white text-sm">Bienvenido, <strong id="adminName">Admin</strong></span>
@@ -29,10 +29,10 @@
         <!-- TABS -->
         <div class="flex gap-4 mb-8 border-b border-gray-300">
             <button onclick="showTab('flights')" class="tab-btn active px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600">
-                ✈️ Gestionar Vuelos
+                Gestionar Vuelos
             </button>
             <button onclick="showTab('stats')" class="tab-btn px-6 py-3 font-bold text-gray-600 hover:text-blue-600">
-                📊 Estadísticas
+                Estadísticas
             </button>
         </div>
 
@@ -91,7 +91,7 @@
                             </div>
 
                             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-md">
-                                💾 Guardar Vuelo
+                                Guardar Vuelo
                             </button>
                             <button type="button" onclick="resetForm()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 rounded-lg transition">
                                 Limpiar
@@ -318,14 +318,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert(isEdit ? '✅ Vuelo actualizado' : '✅ Vuelo creado exitosamente');
+                    alert(isEdit ? 'Vuelo actualizado' : 'Vuelo creado exitosamente');
                     resetForm();
                     loadFlights();
                 } else {
-                    alert('❌ Error: ' + (result.message || 'Intenta de nuevo'));
+                    alert('Error: ' + (result.message || 'Intenta de nuevo'));
                 }
             } catch (error) {
-                alert('❌ Error de conexión');
+                alert('Error de conexión');
                 console.error(error);
             }
         });
@@ -350,7 +350,7 @@
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
-                alert('❌ Error al cargar vuelo');
+                alert('Error al cargar vuelo');
                 console.error(error);
             }
         }
@@ -366,10 +366,10 @@
                 });
 
                 if (response.ok) {
-                    alert('✅ Vuelo eliminado');
+                    alert('Vuelo eliminado');
                     loadFlights();
                 } else {
-                    alert('❌ No se pudo eliminar');
+                    alert('No se pudo eliminar');
                 }
             } catch (error) {
                 console.error(error);
