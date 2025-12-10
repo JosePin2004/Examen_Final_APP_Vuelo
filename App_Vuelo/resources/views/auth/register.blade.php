@@ -105,7 +105,7 @@
                 if (response.ok) {
                     alert("Registro exitoso! Iniciando sesión...");
                     localStorage.setItem('token', data.access_token);
-                    window.location.href = '/dashboard';
+                    window.location.href = '/dashboard#reservations';
                 } else {
                     mensaje.textContent = (data.message || 'Error al registrarse. Intenta otro correo.');
                     mensaje.classList.remove('hidden');

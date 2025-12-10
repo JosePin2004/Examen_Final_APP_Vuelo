@@ -13,7 +13,9 @@ class Reservation extends Model
         'user_id',
         'flight_id',
         'status',
-        'comments'
+        'comments',
+        'seat_class',
+        'seat_number'
     ];
 
     protected function casts(): array
