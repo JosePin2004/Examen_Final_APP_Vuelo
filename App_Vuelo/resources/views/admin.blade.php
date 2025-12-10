@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Admin - App Vuelo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/js/app.js'])
 </head>
 <body class="bg-gray-100 min-h-screen">
 
@@ -33,6 +34,9 @@
             </button>
             <button onclick="showTab('stats')" class="tab-btn px-6 py-3 font-bold text-gray-600 hover:text-blue-600">
                 Estadísticas
+            </button>
+            <button onclick="showTab('reservations')" class="tab-btn px-6 py-3 font-bold text-gray-600 hover:text-blue-600">
+                Reservaciones
             </button>
         </div>
 
@@ -84,10 +88,21 @@
                             </div>
 
                             <div>
-                                <label class="block text-gray-600 text-sm font-bold mb-2">URL Imagen (Opcional)</label>
-                                <input type="url" id="image_url" 
-                                       class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                       placeholder="https://ejemplo.com/imagen.jpg">
+                                <label class="block text-gray-600 text-sm font-bold mb-2">Imagen Vuelo (Opcional)</label>
+                                <div class="flex flex-col gap-2">
+                                    <input type="file" id="flight_image" accept="image/*"
+                                           class="block w-full text-sm text-gray-500
+                                                  file:mr-4 file:py-2 file:px-4
+                                                  file:rounded-md file:border-0
+                                                  file:text-sm file:font-semibold
+                                                  file:bg-blue-50 file:text-blue-700
+                                                  hover:file:bg-blue-100">
+                                    <small class="text-gray-500">Máx: 5MB. Soporta JPEG, PNG, GIF</small>
+                                    <div id="image-preview" class="hidden mt-2">
+                                        <img id="preview-img" class="w-full h-32 object-cover rounded-lg border border-gray-300">
+                                        <button type="button" onclick="clearImagePreview()" class="mt-2 text-sm text-red-600 hover:text-red-800 font-bold">Eliminar imagen</button>
+                                    </div>
+                                </div>
                             </div>
 
                             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-md">
@@ -139,8 +154,22 @@
 
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Últimas Reservas</h2>
-                <div id="reservations-list" class="space-y-4">
+                <div id="stats-reservations-list" class="space-y-4">
                     <p class="text-gray-500 text-center py-10">Cargando reservas...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: RESERVACIONES -->
+        <div id="reservations-tab" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Todas las Reservaciones</h2>
+                    <button onclick="loadReservations()" class="text-blue-500 text-sm hover:underline">🔄 Actualizar</button>
+                </div>
+                
+                <div id="all-reservations-list" class="space-y-4">
+                    <p class="text-gray-500 text-center py-10">Cargando reservaciones...</p>
                 </div>
             </div>
         </div>
@@ -159,6 +188,7 @@
             await verifyAdminAccess();
             loadFlights();
             loadStats();
+            loadReservations();
             loadUserName();
         });
 
@@ -233,6 +263,7 @@
             event.target.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
 
             if (tabName === 'stats') loadStats();
+            if (tabName === 'reservations') loadReservations();
         }
 
         // CARGAR VUELOS
@@ -292,14 +323,19 @@
             const flightId = document.getElementById('flight_id').value;
             const isEdit = !!flightId;
 
-            const data = {
-                origin: document.getElementById('origin').value,
-                destination: document.getElementById('destination').value,
-                departure_time: document.getElementById('departure_time').value,
-                arrival_time: document.getElementById('arrival_time').value,
-                price: document.getElementById('price').value,
-                image_url: document.getElementById('image_url').value || null,
-            };
+            // Usar FormData para soportar archivos
+            const formData = new FormData();
+            formData.append('origin', document.getElementById('origin').value);
+            formData.append('destination', document.getElementById('destination').value);
+            formData.append('departure_time', document.getElementById('departure_time').value);
+            formData.append('arrival_time', document.getElementById('arrival_time').value);
+            formData.append('price', document.getElementById('price').value);
+
+            // Agregar imagen si existe
+            const imageInput = document.getElementById('flight_image');
+            if (imageInput.files.length > 0) {
+                formData.append('image', imageInput.files[0]);
+            }
 
             try {
                 const url = isEdit ? `/api/flights/${flightId}` : '/api/flights';
@@ -309,10 +345,9 @@
                     method: method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: formData
                 });
 
                 const result = await response.json();
@@ -330,6 +365,27 @@
             }
         });
 
+        // PREVIEW DE IMAGEN
+        document.getElementById('flight_image').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const preview = document.getElementById('image-preview');
+                    const previewImg = document.getElementById('preview-img');
+                    previewImg.src = event.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // LIMPIAR PREVIEW DE IMAGEN
+        function clearImagePreview() {
+            document.getElementById('flight_image').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
+
         // EDITAR VUELO
         async function editFlight(id) {
             try {
@@ -345,7 +401,7 @@
                 document.getElementById('departure_time').value = flight.departure_time.slice(0, 16);
                 document.getElementById('arrival_time').value = flight.arrival_time.slice(0, 16);
                 document.getElementById('price').value = flight.price;
-                document.getElementById('image_url').value = flight.image_url || '';
+                clearImagePreview();
                 document.getElementById('formTitle').textContent = `Editar Vuelo #${flight.id}`;
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -407,7 +463,7 @@
                 let revenue = 0;
                 reservations.forEach(res => {
                     const flight = flights.find(f => f.id === res.flight_id);
-                    if (flight && res.status === 'confirmed') {
+                    if (flight && res.status === 'approved') {
                         revenue += parseFloat(flight.price);
                     }
                 });
@@ -417,15 +473,28 @@
                 document.getElementById('stat-reservations').textContent = reservations.length;
                 document.getElementById('stat-revenue').textContent = '$' + revenue.toFixed(2);
 
-                renderReservations(reservations.slice(0, 10));
+                renderReservationsInStats(reservations.slice(0, 10));
             } catch (error) {
                 console.error(error);
             }
         }
 
-        // RENDERIZAR RESERVAS
-        function renderReservations(reservations) {
-            const container = document.getElementById('reservations-list');
+        // CARGAR TODAS LAS RESERVACIONES
+        async function loadReservations() {
+            try {
+                const response = await fetch('/api/admin/reservations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                renderAllReservations(data.data || []);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // RENDERIZAR RESERVAS EN ESTADÍSTICAS
+        function renderReservationsInStats(reservations) {
+            const container = document.getElementById('stats-reservations-list');
             container.innerHTML = '';
 
             if (reservations.length === 0) {
@@ -434,8 +503,8 @@
             }
 
             reservations.forEach(res => {
-                const statusColor = res.status === 'confirmed' ? 'green' : res.status === 'pending' ? 'yellow' : 'red';
-                const statusText = res.status === 'confirmed' ? 'Confirmada' : res.status === 'pending' ? 'Pendiente' : 'Cancelada';
+                const statusColor = res.status === 'approved' ? 'green' : res.status === 'pending' ? 'yellow' : 'red';
+                const statusText = res.status === 'approved' ? 'Aprobada' : res.status === 'pending' ? 'Pendiente' : 'Rechazada';
 
                 const item = `
                     <div class="border border-gray-200 rounded p-4 bg-gray-50">
@@ -451,6 +520,102 @@
                 `;
                 container.innerHTML += item;
             });
+        }
+
+        // RENDERIZAR TODAS LAS RESERVACIONES CON ACCIONES
+        function renderAllReservations(reservations) {
+            const container = document.getElementById('all-reservations-list');
+            container.innerHTML = '';
+
+            if (reservations.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-10">Sin reservaciones</p>';
+                return;
+            }
+
+            reservations.forEach(res => {
+                const statusColor = res.status === 'approved' ? 'green' : res.status === 'pending' ? 'yellow' : 'red';
+                const statusText = res.status === 'approved' ? 'Aprobada' : res.status === 'pending' ? 'Pendiente' : 'Rechazada';
+                const statusBg = res.status === 'approved' ? 'bg-green-50' : res.status === 'pending' ? 'bg-yellow-50' : 'bg-red-50';
+
+                const item = `
+                    <div class="border border-gray-200 rounded-lg p-4 ${statusBg}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <p class="font-bold">Reserva #${res.id}</p>
+                                <p class="text-sm text-gray-600">Usuario: ${res.user?.name || 'Desconocido'} (${res.user?.email || '-'})</p>
+                                <p class="text-sm text-gray-600">Vuelo ID: ${res.flight_id}</p>
+                                <p class="text-sm text-${statusColor}-600 font-bold mt-2">Estado: ${statusText}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                ${res.status === 'pending' ? `
+                                    <button onclick="updateReservationStatus(${res.id}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-bold">✓ Aprobar</button>
+                                    <button onclick="updateReservationStatus(${res.id}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-bold">✗ Rechazar</button>
+                                ` : ''}
+                                <button onclick="deleteReservation(${res.id})" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm font-bold">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += item;
+            });
+        }
+
+        // ACTUALIZAR ESTADO DE RESERVACIÓN
+        async function updateReservationStatus(id, newStatus) {
+            if (!confirm(`¿Estás seguro de que quieres cambiar el estado a: ${newStatus}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/reservations/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (response.ok) {
+                    alert('Estado actualizado');
+                    loadReservations();
+                    loadStats();
+                } else {
+                    alert('Error al actualizar');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+                console.error(error);
+            }
+        }
+
+        // ELIMINAR RESERVACIÓN
+        async function deleteReservation(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta reservación?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/reservations/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Reservación eliminada');
+                    loadReservations();
+                    loadStats();
+                } else {
+                    alert('Error al eliminar');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+                console.error(error);
+            }
         }
 
         function logout() {

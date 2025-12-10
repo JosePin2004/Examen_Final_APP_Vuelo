@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>App Vuelo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/js/app.js'])
     <style>
         body { background: radial-gradient(circle at 20% 20%, rgba(255,45,32,0.25), transparent 35%), linear-gradient(135deg, #0b0b0f 0%, #12121c 60%, #0b0b0f 100%); }
     </style>

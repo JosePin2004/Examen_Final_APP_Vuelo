@@ -49,7 +49,23 @@ class ReservationController extends Controller
         ], 201);
     }
 
-    // 3. CANCELAR/BORRAR RESERVA (Nuevo)
+    // 3. ACTUALIZAR ESTADO RESERVA (Admin)
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,approved,rejected,cancelled'
+        ]);
+
+        $reserva = Reservation::findOrFail($id);
+        $reserva->update(['status' => $request->status]);
+
+        return response()->json([
+            'message' => 'Estado actualizado correctamente',
+            'data' => $reserva
+        ]);
+    }
+
+    // 4. CANCELAR/BORRAR RESERVA (Usuario normal)
     public function destroy($id)
     {
         // Buscamos la reserva, asegurándonos que pertenezca al usuario logueado (seguridad)
