@@ -164,8 +164,23 @@
             }
 
             activeReservations.forEach(reserva => {
-                const statusClass = reserva.status === 'confirmed' ? 'text-green-600' : 'text-yellow-600';
-                const statusText = reserva.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente';
+                let statusClass = 'text-yellow-600';
+                let statusText = '⏳ Pendiente';
+                let statusIcon = '⏳';
+
+                if (reserva.status === 'approved') {
+                    statusClass = 'text-green-600';
+                    statusText = '✓ Aprobada';
+                    statusIcon = '✓';
+                } else if (reserva.status === 'rejected') {
+                    statusClass = 'text-red-600';
+                    statusText = '✗ Rechazada';
+                    statusIcon = '✗';
+                } else if (reserva.status === 'confirmed') {
+                    statusClass = 'text-green-600';
+                    statusText = '✓ Confirmada';
+                    statusIcon = '✓';
+                }
                 
                 const item = `
                     <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition bg-gray-50">

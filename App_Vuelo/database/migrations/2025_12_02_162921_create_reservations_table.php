@@ -18,8 +18,8 @@ return new class extends Migration
         // Relación con el vuelo reservado
         $table->foreignId('flight_id')->constrained()->onDelete('cascade');
         
-        // Estado: 'pending' (pendiente), 'confirmed' (confirmada), 'cancelled' (cancelada)
-        $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+        // Estado: 'pending' (pendiente), 'approved' (aprobada), 'rejected' (rechazada), 'cancelled' (cancelada)
+        $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
         
         $table->text('comments')->nullable(); // Comentarios adicionales
         $table->timestamps();
