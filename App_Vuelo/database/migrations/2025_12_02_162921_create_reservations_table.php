@@ -21,9 +21,13 @@ return new class extends Migration
         // Estado: 'pending' (pendiente), 'approved' (aprobada), 'rejected' (rechazada), 'cancelled' (cancelada)
         $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
         
+        // Información del asiento
+        $table->enum('seat_class', ['economy', 'business'])->nullable();
+        $table->string('seat_number')->nullable(); // Ej: E1, B5
+        
         $table->text('comments')->nullable(); // Comentarios adicionales
         $table->timestamps();
-    });
+    });;
 }
     /**
      * Reverse the migrations.

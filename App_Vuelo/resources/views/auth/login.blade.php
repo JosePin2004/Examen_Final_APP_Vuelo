@@ -71,7 +71,7 @@
                     // ÉXITO
                     alert("¡Conexión Exitosa! Guardando llave y entrando...");
                     localStorage.setItem('token', data.access_token); 
-                    window.location.href = '/dashboard'; 
+                    window.location.href = '/dashboard#reservations'; 
                 } else {
                     // ERROR CONOCIDO (Contraseña mal, etc)
                     alert("Error del Servidor: " + (data.message || 'Desconocido'));

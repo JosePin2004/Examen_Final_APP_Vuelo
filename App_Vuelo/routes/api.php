@@ -4,13 +4,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\FlightController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ReservationController; // 1. ¡IMPORTANTE: ESTA LÍNEA DEBE ESTAR ARRIBA!
+use App\Http\Controllers\Api\ReservationController;
 
 // Rutas Públicas
 Route::get('/flights', [FlightController::class, 'index']);
 Route::get('/flights/{id}', [FlightController::class, 'show']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Obtener asientos reservados de un vuelo
+Route::get('/flights/{flightId}/reserved-seats', function ($flightId) {
+    $reservedSeats = \App\Models\Reservation::where('flight_id', $flightId)
+        ->whereIn('status', ['pending', 'approved', 'confirmed'])
+        ->pluck('seat_number')
+        ->toArray();
+    
+    return response()->json([
+        'reserved_seats' => $reservedSeats
+    ]);
+});
 
 // Rutas Protegidas
 Route::middleware('auth:sanctum')->group(function () {

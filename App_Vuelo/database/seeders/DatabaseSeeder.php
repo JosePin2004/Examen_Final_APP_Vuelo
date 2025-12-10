@@ -35,6 +35,10 @@ class DatabaseSeeder extends Seeder
             'departure_time' => Carbon::now()->addDays(1)->setTime(8, 0), // Mañana 8am
             'arrival_time' => Carbon::now()->addDays(1)->setTime(8, 50),
             'price' => 85.50,
+            'economy_seats' => 120,
+            'business_seats' => 30,
+            'economy_price' => 85.50,
+            'business_price' => 150.00,
         ]);
 
         Flight::create([
@@ -43,6 +47,10 @@ class DatabaseSeeder extends Seeder
             'departure_time' => Carbon::now()->addDays(5)->setTime(10, 0),
             'arrival_time' => Carbon::now()->addDays(5)->setTime(14, 30),
             'price' => 450.00,
+            'economy_seats' => 150,
+            'business_seats' => 40,
+            'economy_price' => 450.00,
+            'business_price' => 850.00,
         ]);
 
         Flight::create([
@@ -51,6 +59,10 @@ class DatabaseSeeder extends Seeder
             'departure_time' => Carbon::now()->addDays(2)->setTime(18, 0),
             'arrival_time' => Carbon::now()->addDays(2)->setTime(18, 50),
             'price' => 60.00,
+            'economy_seats' => 100,
+            'business_seats' => 20,
+            'economy_price' => 60.00,
+            'business_price' => 120.00,
         ]);
     }
 }

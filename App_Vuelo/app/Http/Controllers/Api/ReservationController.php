@@ -22,7 +22,9 @@ class ReservationController extends Controller
     {
         // Validamos que envíen un ID de vuelo y que ese vuelo EXISTA en la tabla flights
         $request->validate([
-            'flight_id' => 'required|exists:flights,id', 
+            'flight_id' => 'required|exists:flights,id',
+            'seat_class' => 'required|in:economy,business',
+            'seat_number' => 'required|string'
         ]);
 
         // Verificar que el usuario no tenga ya una reserva activa para este vuelo
@@ -37,10 +39,29 @@ class ReservationController extends Controller
             ], 409);
         }
 
+        // Verificar que el asiento no esté ya reservado (activo/aprobado)
+        $seatTaken = Reservation::where('flight_id', $request->flight_id)
+            ->where('seat_class', $request->seat_class)
+            ->where('seat_number', $request->seat_number)
+            ->whereIn('status', ['pending', 'approved', 'confirmed'])
+            ->first();
+
+        if ($seatTaken) {
+            return response()->json([
+                'message' => 'Asiento ya reservado'
+            ], 409);
+        }
+
+        // Obtener el vuelo para calcular el precio
+        $flight = \App\Models\Flight::find($request->flight_id);
+        $price = $request->seat_class === 'economy' ? $flight->economy_price : $flight->business_price;
+
         $reserva = Reservation::create([
-            'user_id' => Auth::id(), // El usuario logueado
+            'user_id' => Auth::id(),
             'flight_id' => $request->flight_id,
-            'status' => 'pending' // Por defecto
+            'seat_class' => $request->seat_class,
+            'seat_number' => $request->seat_number,
+            'status' => 'pending'
         ]);
 
         return response()->json([

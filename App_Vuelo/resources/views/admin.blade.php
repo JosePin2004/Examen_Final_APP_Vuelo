@@ -133,7 +133,7 @@
 
         <!-- TAB: ESTADÍSTICAS -->
         <div id="stats-tab" class="tab-content hidden">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-blue-50 rounded-xl shadow p-6">
                     <p class="text-gray-600 text-sm font-bold">Total Vuelos</p>
                     <p class="text-3xl font-bold text-blue-600" id="stat-flights">0</p>
@@ -146,9 +146,38 @@
                     <p class="text-gray-600 text-sm font-bold">Total Reservas</p>
                     <p class="text-3xl font-bold text-purple-600" id="stat-reservations">0</p>
                 </div>
-                <div class="bg-orange-50 rounded-xl shadow p-6">
-                    <p class="text-gray-600 text-sm font-bold">Ingresos (USD)</p>
-                    <p class="text-3xl font-bold text-orange-600" id="stat-revenue">$0</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Buscar Estadísticas de Vuelo</h2>
+                <div class="flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="block text-gray-600 text-sm font-bold mb-2">ID del Vuelo</label>
+                        <input type="number" id="search-flight-id" 
+                               class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                               placeholder="Ej: 1">
+                    </div>
+                    <button onclick="searchFlightStats()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                        Buscar
+                    </button>
+                </div>
+
+                <div id="flight-stats-result" class="mt-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <p class="text-gray-600 text-sm font-bold">Asientos Disponibles - Turista</p>
+                            <p class="text-3xl font-bold text-blue-600" id="stats-economy-available">0</p>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <p class="text-gray-600 text-sm font-bold">Asientos Disponibles - Ejecutivo</p>
+                            <p class="text-3xl font-bold text-yellow-600" id="stats-business-available">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <p class="text-gray-600 text-sm font-bold mb-2">Detalles del Vuelo</p>
+                        <div id="flight-details" class="text-gray-700 space-y-1">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -459,23 +488,70 @@
                 const reservationsData = await reservationsRes.json();
                 const reservations = reservationsData.data || [];
 
-                // Calcular ingresos
-                let revenue = 0;
-                reservations.forEach(res => {
-                    const flight = flights.find(f => f.id === res.flight_id);
-                    if (flight && res.status === 'approved') {
-                        revenue += parseFloat(flight.price);
-                    }
-                });
-
                 document.getElementById('stat-flights').textContent = flights.length;
                 document.getElementById('stat-users').textContent = userData.count || 0;
                 document.getElementById('stat-reservations').textContent = reservations.length;
-                document.getElementById('stat-revenue').textContent = '$' + revenue.toFixed(2);
 
                 renderReservationsInStats(reservations.slice(0, 10));
             } catch (error) {
                 console.error(error);
+            }
+        }
+
+        // BUSCAR ESTADÍSTICAS DE UN VUELO ESPECÍFICO
+        async function searchFlightStats() {
+            const flightId = document.getElementById('search-flight-id').value;
+
+            if (!flightId) {
+                alert('Por favor ingresa un ID de vuelo');
+                return;
+            }
+
+            try {
+                // Obtener datos del vuelo
+                const flightRes = await fetch(`/api/flights/${flightId}`);
+                const flightData = await flightRes.json();
+
+                if (!flightRes.ok || !flightData.data) {
+                    alert('Vuelo no encontrado');
+                    return;
+                }
+
+                const flight = flightData.data;
+
+                // Obtener asientos reservados
+                const seatsRes = await fetch(`/api/flights/${flightId}/reserved-seats`);
+                const seatsData = await seatsRes.json();
+                const reservedSeats = seatsData.reserved_seats || [];
+
+                // Contar asientos reservados por clase
+                const economyReserved = reservedSeats.filter(s => s.startsWith('E')).length;
+                const businessReserved = reservedSeats.filter(s => s.startsWith('B')).length;
+
+                // Calcular disponibles
+                const economyAvailable = flight.economy_seats - economyReserved;
+                const businessAvailable = flight.business_seats - businessReserved;
+
+                // Mostrar resultados
+                document.getElementById('stats-economy-available').textContent = economyAvailable;
+                document.getElementById('stats-business-available').textContent = businessAvailable;
+
+                const detailsHtml = `
+                    <p><strong>Vuelo ID:</strong> ${flight.id}</p>
+                    <p><strong>Ruta:</strong> ${flight.origin} → ${flight.destination}</p>
+                    <p><strong>Salida:</strong> ${new Date(flight.departure_time).toLocaleString('es-ES')}</p>
+                    <p><strong>Llegada:</strong> ${new Date(flight.arrival_time).toLocaleString('es-ES')}</p>
+                    <p><strong>Turista:</strong> ${economyReserved}/${flight.economy_seats} reservados (${economyAvailable} disponibles)</p>
+                    <p><strong>Ejecutivo:</strong> ${businessReserved}/${flight.business_seats} reservados (${businessAvailable} disponibles)</p>
+                    <p><strong>Precio Turista:</strong> $${parseFloat(flight.economy_price).toFixed(2)}</p>
+                    <p><strong>Precio Ejecutivo:</strong> $${parseFloat(flight.business_price).toFixed(2)}</p>
+                `;
+
+                document.getElementById('flight-details').innerHTML = detailsHtml;
+                document.getElementById('flight-stats-result').classList.remove('hidden');
+            } catch (error) {
+                console.error(error);
+                alert('Error obteniendo datos del vuelo');
             }
         }
 
