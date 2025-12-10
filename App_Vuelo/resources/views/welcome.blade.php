@@ -1,134 +1,171 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>App Vuelo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle at 20% 20%, rgba(255,45,32,0.25), transparent 35%), linear-gradient(135deg, #0b0b0f 0%, #12121c 60%, #0b0b0f 100%); }
+    </style>
+</head>
+<body class="text-white min-h-screen font-sans">
+    <header class="sticky top-0 z-40 bg-black/50 backdrop-blur border-b border-white/10">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xl font-semibold">
+                <svg class="w-7 h-7 text-red-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 7.6 12.9 3c-.57-.32-1.27-.32-1.84 0L3.2 7.6c-.57.32-.92.93-.92 1.59v5.62c0 .66.35 1.27.92 1.59l7.86 4.6c.57.33 1.27.33 1.84 0l7.9-4.6c.57-.32.92-.93.92-1.59V9.19c0-.66-.35-1.27-.92-1.59ZM12 13.6l-7.1-4.15L12 5.3l7.12 4.15L12 13.6Zm-.92 2.37-6.48-3.78v-1.9l6.48 3.78v1.9Zm1.84 0v-1.9l6.48-3.78v1.9l-6.48 3.78Z"/></svg>
+                <span>App Vuelo</span>
+            </div>
+            <nav class="flex items-center gap-4 text-sm font-semibold">
+                @auth
+                    <a class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition" href="{{ url('/dashboard') }}">Dashboard</a>
+                @else
+                    <a class="px-4 py-2 rounded-lg border border-red-500 text-red-300 hover:bg-red-600 hover:border-red-600 hover:text-white transition" href="{{ route('login') }}">Log in</a>
+                    @if (Route::has('register'))
+                        <a class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition" href="{{ route('register') }}">Register</a>
+                    @endif
+                @endauth
+            </nav>
+        </div>
+    </header>
 
-        <title>App Vuelos - Catálogo de Vuelos</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
-
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased bg-gray-100 dark:bg-black dark:text-white/50">
-        <div class="min-h-screen">
-            <!-- Header -->
-            <header class="bg-white dark:bg-zinc-900 shadow">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div class="flex justify-between items-center">
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">✈️ Catálogo de Vuelos</h1>
-                        <nav class="flex gap-4">
-                            @if (Route::has('login'))
-                                @auth
-                                    <a href="{{ url('/dashboard') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Dashboard</a>
-                                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Logout</button>
-                                    </form>
-                                @else
-                                    <a href="{{ route('login') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Iniciar sesión</a>
-                                    @if (Route::has('register'))
-                                        <a href="{{ route('register') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Registrarse</a>
-                                    @endif
-                                @endauth
-                            @endif
-                        </nav>
+    <main class="max-w-6xl mx-auto px-4 py-14 space-y-12">
+        <section class="flex flex-col lg:flex-row gap-10 items-center">
+            <div class="flex-1 space-y-6">
+                <p class="text-sm uppercase tracking-[0.3em] text-red-400">Catálogo en línea</p>
+                <h1 class="text-4xl md:text-5xl font-bold leading-tight">Encuentra tu próximo vuelo y reserva en minutos</h1>
+                <p class="text-lg text-gray-300 max-w-2xl">Consulta horarios, destinos y precios en tiempo real. Regístrate para crear y gestionar tus reservas con autenticación segura.</p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <a href="#catalogo" class="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 font-semibold">Ver catálogo</a>
+                    @guest
+                        <a href="{{ route('login') }}" class="px-6 py-3 rounded-lg border border-white/20 hover:border-red-400 hover:text-red-300 font-semibold transition">Iniciar sesión</a>
+                    @endguest
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="px-6 py-3 rounded-lg border border-white/20 hover:border-red-400 hover:text-red-300 font-semibold transition">Ir al Dashboard</a>
+                    @endauth
+                </div>
+            </div>
+            <div class="flex-1 w-full">
+                <div class="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-black border border-white/10 p-6 shadow-xl">
+                    <div class="flex items-center gap-3 mb-4 text-red-400 font-semibold">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M2 12h20M12 2l4 4-4 4M12 22l4-4-4-4"/></svg>
+                        <span>Vista rápida</span>
+                    </div>
+                    <p class="text-gray-200 text-sm leading-relaxed mb-4">Previsualiza algunos vuelos disponibles. Los datos vienen de la API pública de vuelos.</p>
+                    <div id="preview-flights" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="rounded-lg border border-white/10 bg-white/5 p-4 text-gray-300">Cargando vuelos...</div>
                     </div>
                 </div>
-            </header>
+            </div>
+        </section>
 
-            <!-- Main Content -->
-            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div id="flights-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Los vuelos se cargarán aquí -->
-                </div>
-            </main>
+        <section id="catalogo" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-3xl font-bold">Catálogo de vuelos</h2>
+                <span class="text-sm text-gray-400">Datos en vivo desde /api/flights</span>
+            </div>
+            <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="rounded-xl bg-white/5 border border-white/10 p-5 text-gray-300">Cargando catálogo...</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-black/40 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-400 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <span>Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</span>
+            <span>App Vuelo · Catálogo y reservas</span>
         </div>
+    </footer>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                loadFlightsCatalog();
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFlights();
+        });
+
+        const isAuth = {{ auth()->check() ? 'true' : 'false' }};
+        const dashboardUrl = '{{ url('/dashboard') }}';
+        const loginUrl = '{{ route('login') }}';
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? 'Fecha no disponible' : date.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        async function loadFlights() {
+            const previewContainer = document.getElementById('preview-flights');
+            const catalogContainer = document.getElementById('catalog-grid');
+
+            try {
+                const response = await fetch('/api/flights');
+                const data = await response.json();
+                const flights = data.data || data || [];
+
+                renderPreview(previewContainer, flights.slice(0, 4));
+                renderCatalog(catalogContainer, flights);
+            } catch (error) {
+                previewContainer.innerHTML = `<div class="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">No se pudieron cargar los vuelos.</div>`;
+                catalogContainer.innerHTML = `<div class="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">No se pudo cargar el catálogo.</div>`;
+                console.error('Error cargando vuelos:', error);
+            }
+        }
+
+        function renderPreview(container, flights) {
+            container.innerHTML = '';
+
+            if (!flights.length) {
+                container.innerHTML = '<div class="rounded-lg border border-white/10 bg-white/5 p-4 text-gray-300">No hay vuelos disponibles.</div>';
+                return;
+            }
+
+            flights.forEach(flight => {
+                const card = document.createElement('div');
+                card.className = 'rounded-lg border border-white/10 bg-white/5 p-4 text-gray-200 shadow-sm hover:border-red-400/60 transition';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">${flight.code || 'Vuelo'}</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300">${flight.seats ?? '—'} asientos</span>
+                    </div>
+                    <div class="text-lg font-semibold">${flight.origin} → ${flight.destination}</div>
+                    <div class="text-sm text-gray-400 mt-1">Salida: ${formatDate(flight.departure_time)}</div>
+                    <div class="text-sm text-gray-400">Llegada: ${formatDate(flight.arrival_time)}</div>
+                    <div class="text-xl font-bold text-red-300 mt-3">$${Number(flight.price || 0).toFixed(2)}</div>
+                `;
+                container.appendChild(card);
             });
+        }
 
-            function loadFlightsCatalog() {
-                fetch('/api/flights')
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('📋 Vuelos cargados:', data);
-                        const flights = data.data || data || [];
-                        renderFlightsCatalog(flights);
-                    })
-                    .catch(error => console.error('❌ Error cargando vuelos:', error));
+        function renderCatalog(container, flights) {
+            container.innerHTML = '';
+
+            if (!flights.length) {
+                container.innerHTML = '<div class="rounded-xl bg-white/5 border border-white/10 p-5 text-gray-300">No hay vuelos disponibles.</div>';
+                return;
             }
 
-            function renderFlightsCatalog(flights) {
-                const container = document.getElementById('flights-container');
-                container.innerHTML = '';
+            flights.forEach(flight => {
+                const card = document.createElement('div');
+                card.className = 'rounded-xl bg-white/5 border border-white/10 p-5 space-y-3 shadow-sm hover:border-red-400/60 transition';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="text-lg font-semibold">${flight.origin} → ${flight.destination}</div>
+                        <span class="text-xs px-3 py-1 rounded-full bg-red-500/15 text-red-300 border border-red-500/20">${flight.code || 'Vuelo'}</span>
+                    </div>
+                    <div class="text-sm text-gray-300">Salida: ${formatDate(flight.departure_time)}</div>
+                    <div class="text-sm text-gray-300">Llegada: ${formatDate(flight.arrival_time)}</div>
+                    <div class="text-2xl font-bold text-red-300">$${Number(flight.price || 0).toFixed(2)}</div>
+                    <button class="w-full px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold" onclick="handleReservation(${flight.id})">Reservar</button>
+                `;
+                container.appendChild(card);
+            });
+        }
 
-                if (flights.length === 0) {
-                    container.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay vuelos disponibles</p>';
-                    return;
-                }
-
-                flights.forEach(flight => {
-                    const departureTime = new Date(flight.departure_time).toLocaleString('es-ES');
-                    const arrivalTime = new Date(flight.arrival_time).toLocaleString('es-ES');
-                    
-                    const card = document.createElement('div');
-                    card.className = 'bg-white dark:bg-zinc-900 rounded-lg shadow-lg hover:shadow-xl transition overflow-hidden';
-                    card.innerHTML = `
-                        <div class="relative h-48 bg-gradient-to-br from-blue-400 to-blue-600 overflow-hidden">
-                            ${flight.image_url ? `<img src="${flight.image_url}" alt="${flight.origin}" class="w-full h-full object-cover">` : ''}
-                            <div class="absolute inset-0 bg-black bg-opacity-30 flex items-end">
-                                <div class="w-full p-4 text-white">
-                                    <div class="flex justify-between items-center text-2xl font-bold">
-                                        <span>${flight.origin}</span>
-                                        <span>→</span>
-                                        <span>${flight.destination}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <div class="space-y-3 mb-4">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Salida</p>
-                                    <p class="text-gray-900 dark:text-white font-semibold">${departureTime}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Llegada</p>
-                                    <p class="text-gray-900 dark:text-white font-semibold">${arrivalTime}</p>
-                                </div>
-                                <div class="border-t pt-3">
-                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">$${parseFloat(flight.price).toFixed(2)}</p>
-                                </div>
-                            </div>
-                            <button 
-                                onclick="handleReservation(${flight.id})"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
-                            >
-                                Seleccionar Vuelo
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+        function handleReservation(flightId) {
+            if (isAuth) {
+                window.location.href = `${dashboardUrl}?flight=${flightId}`;
+            } else {
+                window.location.href = loginUrl;
             }
-
-            function handleReservation(flightId) {
-                const token = localStorage.getItem('auth_token');
-                
-                if (!token) {
-                    // No está autenticado - redirigir a login
-                    window.location.href = '{{ route("login") }}';
-                    return;
-                }
-
-                // Si está autenticado, ir al dashboard para hacer la reserva
-                window.location.href = '{{ url("/dashboard") }}?flight=' + flightId;
-            }
-        </script>
-    </body>
+        }
+    </script>
+</body>
 </html>
