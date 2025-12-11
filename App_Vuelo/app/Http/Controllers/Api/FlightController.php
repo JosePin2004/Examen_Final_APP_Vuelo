@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Flight;
 use App\Models\Reservation;
 use App\Services\FirebaseService;
+use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class FlightController extends Controller
 {
-    // 1. LISTAR VUELOS (Público)
+    //
 
 
 
@@ -187,5 +188,27 @@ class FlightController extends Controller
             Log::error('Error eliminando vuelo: ' . $e->getMessage());
             return response()->json(['message' => 'Error al eliminar vuelo'], 500);
         }
+    }
+
+    // 6. OBTENER CLIMA DEL DESTINO (Público)
+    public function weather($id, WeatherService $weatherService)
+    {
+        $flight = Flight::findOrFail($id);
+
+        $city = $flight->destination;
+        $weather = $weatherService->getCurrentByCity($city);
+
+        if (!$weather) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo obtener el clima. Verifique OPENWEATHER_API_KEY.',
+            ], 503);
+        }
+
+        return response()->json([
+            'success' => true,
+            'city' => $city,
+            'data' => $weather,
+        ]);
     }
 }

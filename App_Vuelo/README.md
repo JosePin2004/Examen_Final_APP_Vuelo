@@ -64,3 +64,12 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## OpenWeatherMap
+
+- Añade tu API key a `.env`:
+	```env
+	OPENWEATHER_API_KEY=tu_api_key
+	OPENWEATHER_BASE_URL=https://api.openweathermap.org/data/2.5
+	```
+- Endpoint disponible: `GET /api/flights/{id}/weather` devuelve el clima actual del destino del vuelo.

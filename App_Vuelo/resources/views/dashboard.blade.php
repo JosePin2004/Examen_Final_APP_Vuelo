@@ -228,6 +228,15 @@
                             </div>
                         </div>
 
+                        <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-3 mb-4">
+                            <p class="font-bold text-orange-700 text-sm mb-2">🌤️ Clima del Destino</p>
+                            <div id="weather-${flight.id}" class="text-sm text-gray-600">
+                                <button onclick="loadWeatherDashboard(${flight.id})" class="w-full bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-bold transition">
+                                    Ver Clima
+                                </button>
+                            </div>
+                        </div>
+
                         <button onclick="goToReservation(${flight.id})" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg transition">
                             Reservar
                         </button>
@@ -433,6 +442,35 @@
                 `;
                 container.innerHTML += item;
             });
+        }
+
+        // CARGAR CLIMA EN DASHBOARD
+        async function loadWeatherDashboard(flightId) {
+            const target = document.getElementById(`weather-${flightId}`);
+            if (!target) return;
+            target.innerHTML = '<p class="text-sm text-gray-600">Cargando clima...</p>';
+
+            try {
+                const response = await fetch(`/api/flights/${flightId}/weather`);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    target.innerHTML = `<p class="text-sm text-red-600">${data.message || 'No disponible'}</p>`;
+                    return;
+                }
+
+                const w = data.data;
+                target.innerHTML = `
+                    <div class="space-y-1">
+                        <p class="text-sm font-semibold text-orange-700">${w.temp_c}°C · ${w.description}</p>
+                        <p class="text-xs text-gray-600">💧 Humedad: ${w.humidity}%</p>
+                        <p class="text-xs text-gray-600">🌬️ Viento: ${w.wind_speed_ms} m/s</p>
+                    </div>
+                `;
+            } catch (error) {
+                target.innerHTML = '<p class="text-sm text-red-600">Error cargando clima</p>';
+                console.error('Error:', error);
+            }
         }
 
         function logout() {

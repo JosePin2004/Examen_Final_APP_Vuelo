@@ -130,6 +130,9 @@
                     <div class="text-sm text-gray-400 mt-1">Salida: ${formatDate(flight.departure_time)}</div>
                     <div class="text-sm text-gray-400">Llegada: ${formatDate(flight.arrival_time)}</div>
                     <div class="text-xl font-bold text-red-300 mt-3">$${Number(flight.price || 0).toFixed(2)}</div>
+                    <div class="mt-3 text-sm text-gray-300" id="weather-preview-${flight.id}">
+                        <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-semibold" onclick="loadWeather(${flight.id}, 'weather-preview-${flight.id}')">Ver clima destino</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -154,10 +157,39 @@
                     <div class="text-sm text-gray-300">Salida: ${formatDate(flight.departure_time)}</div>
                     <div class="text-sm text-gray-300">Llegada: ${formatDate(flight.arrival_time)}</div>
                     <div class="text-2xl font-bold text-red-300">$${Number(flight.price || 0).toFixed(2)}</div>
+                    <div class="text-sm text-gray-300" id="weather-catalog-${flight.id}">
+                        <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-semibold" onclick="loadWeather(${flight.id}, 'weather-catalog-${flight.id}')">Ver clima destino</button>
+                    </div>
                     <button class="w-full px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-semibold" onclick="handleReservation(${flight.id})">Reservar</button>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        async function loadWeather(flightId, targetId) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.textContent = 'Cargando clima...';
+
+            try {
+                const response = await fetch(`/api/flights/${flightId}/weather`);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    target.textContent = data.message || 'No se pudo obtener el clima.';
+                    return;
+                }
+
+                const w = data.data;
+                target.innerHTML = `
+                    <span class="font-semibold text-red-200">${w.temp_c ?? '?'}°C</span>
+                    · ${w.description || 'Clima no disponible'}
+                    · Humedad ${w.humidity ?? '?'}%
+                `;
+            } catch (error) {
+                target.textContent = 'No se pudo obtener el clima.';
+                console.error('Error cargando clima:', error);
+            }
         }
 
         function handleReservation(flightId) {
