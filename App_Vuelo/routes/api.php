@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ReservationController;
 // Rutas Públicas
 Route::get('/flights', [FlightController::class, 'index']);
 Route::get('/flights/{id}', [FlightController::class, 'show']);
+Route::get('/flights/{id}/weather', [FlightController::class, 'weather']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
