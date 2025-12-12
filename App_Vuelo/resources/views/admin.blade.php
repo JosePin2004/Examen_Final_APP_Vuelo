@@ -49,7 +49,7 @@
                     <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
                         <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2" id="formTitle">Nuevo Vuelo</h2>
                         
-                        <form id="flightForm" class="space-y-4">
+                        <form id="flightForm" onsubmit="return guardarVuelo(event)" class="space-y-4">
                             <input type="hidden" id="flight_id">
                             
                             <div>
@@ -88,6 +88,7 @@
                             </div>
 
                             <div>
+                                <input type="hidden" name="image_url" id="firebaseUrl">
                                 <label class="block text-gray-600 text-sm font-bold mb-2">Imagen Vuelo (Opcional)</label>
                                 <div class="flex flex-col gap-2">
                                     <input type="file" id="flight_image" accept="image/*"
@@ -102,11 +103,15 @@
                                         <img id="preview-img" class="w-full h-32 object-cover rounded-lg border border-gray-300">
                                         <button type="button" onclick="clearImagePreview()" class="mt-2 text-sm text-red-600 hover:text-red-800 font-bold">Eliminar imagen</button>
                                     </div>
+                                    <button type="button" id="uploadImageBtn" onclick="subirImagen()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg transition">
+                                        🔼 Subir Imagen
+                                    </button>
+                                    <div id="image-status" class="text-sm text-center"></div>
                                 </div>
                             </div>
 
                             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-md">
-                                Guardar Vuelo
+                                💾 Guardar Vuelo
                             </button>
                             <button type="button" onclick="resetForm()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 rounded-lg transition">
                                 Limpiar
@@ -346,25 +351,22 @@
             });
         }
 
-        // FORMULARIO CREAR/EDITAR
-        document.getElementById('flightForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // GUARDAR VUELO
+        async function guardarVuelo(event) {
+            event.preventDefault();
+            
             const flightId = document.getElementById('flight_id').value;
             const isEdit = !!flightId;
 
-            // Usar FormData para soportar archivos
-            const formData = new FormData();
-            formData.append('origin', document.getElementById('origin').value);
-            formData.append('destination', document.getElementById('destination').value);
-            formData.append('departure_time', document.getElementById('departure_time').value);
-            formData.append('arrival_time', document.getElementById('arrival_time').value);
-            formData.append('price', document.getElementById('price').value);
-
-            // Agregar imagen si existe
-            const imageInput = document.getElementById('flight_image');
-            if (imageInput.files.length > 0) {
-                formData.append('image', imageInput.files[0]);
-            }
+            // Recolectar datos del formulario
+            const datos = {
+                origin: document.getElementById('origin').value,
+                destination: document.getElementById('destination').value,
+                departure_time: document.getElementById('departure_time').value,
+                arrival_time: document.getElementById('arrival_time').value,
+                price: document.getElementById('price').value,
+                image_url: document.getElementById('firebaseUrl').value || null
+            };
 
             try {
                 const url = isEdit ? `/api/flights/${flightId}` : '/api/flights';
@@ -374,25 +376,29 @@
                     method: method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify(datos)
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert(isEdit ? 'Vuelo actualizado' : 'Vuelo creado exitosamente');
+                    alert(isEdit ? '✓ Vuelo actualizado exitosamente' : '✓ Vuelo creado exitosamente');
                     resetForm();
                     loadFlights();
                 } else {
-                    alert('Error: ' + (result.message || 'Intenta de nuevo'));
+                    alert('❌ Error: ' + (result.message || 'Intenta de nuevo'));
+                    console.error('Response error:', result);
                 }
             } catch (error) {
-                alert('Error de conexión');
-                console.error(error);
+                alert('❌ Error de conexión: ' + error.message);
+                console.error('Fetch error:', error);
             }
-        });
+            
+            return false;
+        }
 
         // PREVIEW DE IMAGEN
         document.getElementById('flight_image').addEventListener('change', (e) => {
@@ -466,6 +472,9 @@
             document.getElementById('flightForm').reset();
             document.getElementById('flight_id').value = '';
             document.getElementById('formTitle').textContent = 'Nuevo Vuelo';
+            document.getElementById('firebaseUrl').value = '';
+            document.getElementById('image-status').textContent = '';
+            clearImagePreview();
         }
 
         // CARGAR ESTADÍSTICAS
@@ -699,5 +708,79 @@
             window.location.href = '/login';
         }
     </script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+<script>
+    // 1. CONFIGURACIÓN (Toma las llaves de tu archivo .env)
+    const firebaseConfig = {
+        apiKey: "{{ env('FIREBASE_API_KEY') }}",
+        authDomain: "{{ env('FIREBASE_AUTH_DOMAIN') }}",
+        projectId: "{{ env('FIREBASE_PROJECT_ID') }}",
+        storageBucket: "{{ env('FIREBASE_STORAGE_BUCKET') }}",
+        messagingSenderId: "{{ env('FIREBASE_MESSAGING_SENDER_ID') }}",
+        appId: "{{ env('FIREBASE_APP_ID') }}"
+    };
+
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    // FUNCIÓN PARA SUBIR IMAGEN (botón separado)
+    async function subirImagen() {
+        const fileInput = document.getElementById('flight_image');
+        const file = fileInput.files[0];
+        const btn = document.getElementById('uploadImageBtn');
+        const statusDiv = document.getElementById('image-status');
+
+        if (!file) {
+            statusDiv.textContent = '❌ Selecciona una imagen primero';
+            statusDiv.className = 'text-sm text-center text-red-600';
+            return;
+        }
+
+        // Mostrar estado
+        btn.disabled = true;
+        btn.innerText = '🔄 Subiendo...';
+        statusDiv.textContent = 'Subiendo imagen...';
+        statusDiv.className = 'text-sm text-center text-blue-600';
+
+        // Crear FormData
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch('/api/flights/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Guardar URL en el campo oculto
+                document.getElementById('firebaseUrl').value = data.image_url;
+                statusDiv.textContent = '✓ Imagen subida exitosamente';
+                statusDiv.className = 'text-sm text-center text-green-600';
+                console.log('URL de imagen: ' + data.image_url);
+            } else {
+                statusDiv.textContent = '❌ Error: ' + data.message;
+                statusDiv.className = 'text-sm text-center text-red-600';
+            }
+        } catch (error) {
+            statusDiv.textContent = '❌ Error de conexión';
+            statusDiv.className = 'text-sm text-center text-red-600';
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '🔼 Subir Imagen';
+        }
+    }
+
+</script>
 </body>
 </html>
