@@ -27,18 +27,6 @@ class ReservationController extends Controller
             'seat_number' => 'required|string'
         ]);
 
-        // Verificar que el usuario no tenga ya una reserva activa para este vuelo
-        $existingReservation = Reservation::where('user_id', Auth::id())
-            ->where('flight_id', $request->flight_id)
-            ->where('status', '!=', 'cancelled')
-            ->first();
-
-        if ($existingReservation) {
-            return response()->json([
-                'message' => 'Ya tienes una reserva activa para este vuelo'
-            ], 409);
-        }
-
         // Verificar que el asiento no esté ya reservado (activo/aprobado)
         $seatTaken = Reservation::where('flight_id', $request->flight_id)
             ->where('seat_class', $request->seat_class)

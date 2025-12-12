@@ -17,6 +17,9 @@
                 <a href="/admin" id="adminLink" class="hidden bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded text-sm font-bold transition shadow">
                     Panel Admin
                 </a>
+                <button onclick="goToProfile()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
+                    👤 Perfil
+                </button>
                 <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
                     Cerrar Sesión
                 </button>
@@ -33,6 +36,9 @@
             </button>
             <button onclick="showTab('reservations')" class="tab-btn px-6 py-3 font-bold text-gray-600 hover:text-blue-600">
                 Mis Reservaciones
+            </button>
+            <button onclick="showTab('profile')" class="tab-btn px-6 py-3 font-bold text-gray-600 hover:text-blue-600">
+                👤 Mi Perfil
             </button>
         </div>
 
@@ -110,6 +116,73 @@
                 </div>
             </div>
         </div>
+
+        <!-- TAB: PERFIL -->
+        <div id="profile-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Mi Perfil</h2>
+                        
+                        <!-- Edit Mode Toggle -->
+                        <div class="mb-6 flex gap-3">
+                            <button onclick="toggleEditMode()" id="edit-toggle-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                                ✏️ Editar Perfil
+                            </button>
+                            <button onclick="cancelEdit()" id="cancel-edit-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                                ✕ Cancelar
+                            </button>
+                        </div>
+
+                        <!-- User Info Section (View Mode) -->
+                        <div id="profile-view-mode" class="bg-blue-50 rounded-lg p-6 mb-6 border-l-4 border-blue-500">
+                            <div class="mb-6">
+                                <p class="text-sm text-gray-600 font-bold mb-2">Nombre</p>
+                                <p class="text-xl font-bold text-gray-800" id="profile-name">-</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-600 font-bold mb-2">Email</p>
+                                <p class="text-xl text-gray-800" id="profile-email">-</p>
+                            </div>
+                        </div>
+
+                        <!-- Edit Form (Hidden by default) -->
+                        <div id="profile-edit-mode" class="hidden">
+                            <form onsubmit="saveProfile(event)" class="space-y-4 bg-blue-50 rounded-lg p-6 mb-6 border-l-4 border-blue-500">
+                                <div>
+                                    <label class="block text-sm text-gray-600 font-bold mb-2">Nombre</label>
+                                    <input type="text" id="edit-name" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm text-gray-600 font-bold mb-2">Email</label>
+                                    <input type="email" id="edit-email" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                                </div>
+
+                                <div class="pt-4 flex gap-3">
+                                    <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                                        💾 Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Save Status Message -->
+                        <div id="save-status" class="hidden rounded-lg p-4 mb-6 font-semibold text-center"></div>
+                        
+                        <!-- Danger Zone -->
+                        <div class="border-t-2 border-red-200 pt-6">
+                            <h3 class="text-lg font-bold text-red-600 mb-4">⚠️ Zona de Peligro</h3>
+                            <p class="text-sm text-gray-600 mb-4">Eliminar tu cuenta es permanente e irreversible. Se eliminarán todas tus reservaciones.</p>
+                            <button onclick="deleteAccount()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                                🗑️ Eliminar Mi Cuenta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -182,6 +255,10 @@
                 // Extraer el array de vuelos (puede venir en data.data o directamente)
                 let flights = Array.isArray(data) ? data : (data.data || []);
 
+                // Guardar vuelos en window para uso posterior
+                window.flightsData = {};
+                flights.forEach(f => window.flightsData[f.id] = f);
+
                 // 1. Apuntamos al contenedor correcto (Revisa que tu HTML tenga este ID)
                 const container = document.getElementById('flights-grid'); 
                 container.innerHTML = ''; // Limpiamos el "Cargando..."
@@ -217,11 +294,11 @@
                                 </div>
                                 
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <p>📅 Salida: ${flight.departure_date || 'Por confirmar'}</p>
-                                    <p class="font-semibold text-blue-600 text-lg">$${flight.price || '0.00'}</p>
+                                    <p>📅 Salida: ${flight.departure_time ? new Date(flight.departure_time).toLocaleString('es-ES') : 'Por confirmar'}</p>
+                                    <p class="font-semibold text-blue-600 text-lg">$${parseFloat(flight.economy_price || flight.price || '0.00').toFixed(2)}</p>
                                 </div>
 
-                                <button onclick="selectFlight(${flight.id})" 
+                                <button onclick="goToReservation(${flight.id})" 
                                     class="w-full bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white font-bold py-2 px-4 rounded transition">
                                     Reservar Este Vuelo
                                 </button>
@@ -390,6 +467,21 @@
 
                 if (response.status === 401) return logout();
                 const data = await response.json();
+                
+                // Cargar información de vuelos para mostrar origen y destino
+                const reservations = data.data || data;
+                if (reservations.length > 0) {
+                    const flightsResponse = await fetch('/api/flights', {
+                        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    });
+                    const flightsData = await flightsResponse.json();
+                    const flights = flightsData.data || flightsData;
+                    
+                    // Crear un mapa de vuelos para búsqueda rápida
+                    window.flightsMap = {};
+                    flights.forEach(f => window.flightsMap[f.id] = f);
+                }
+                
                 renderReservations(data);
             } catch (error) {
                 console.error(error);
@@ -488,11 +580,16 @@
                     statusText = '✓ Confirmada';
                 }
                 
+                // Obtener información del vuelo
+                const flight = window.flightsMap ? window.flightsMap[reserva.flight_id] : null;
+                const flightRoute = flight ? `${flight.origin} ✈️ ${flight.destination}` : 'Vuelo no disponible';
+                
                 const item = `
                     <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition bg-gray-50">
                         <div>
                             <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Reserva #${reserva.id}</p>
                             <p class="text-lg font-bold text-gray-800">Vuelo ID: ${reserva.flight_id}</p>
+                            <p class="text-sm text-blue-600 font-semibold mb-2">${flightRoute}</p>
                             <p class="text-sm text-gray-600">Asiento: ${reserva.seat_number || 'N/A'}</p>
                             <p class="text-sm ${statusClass} font-medium">Estado: ${statusText}</p>
                             <p class="text-xs text-gray-400 mt-1">📅 ${new Date(reserva.created_at).toLocaleDateString()}</p>
@@ -533,6 +630,151 @@
             } catch (error) {
                 target.innerHTML = '<p class="text-sm text-red-600">Error cargando clima</p>';
                 console.error('Error:', error);
+            }
+        }
+
+        // IR AL PERFIL
+        async function goToProfile() {
+            showTabByName('profile');
+            loadProfileInfo();
+        }
+
+        // CARGAR INFORMACIÓN DEL PERFIL
+        async function loadProfileInfo() {
+            try {
+                const response = await fetch('/api/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.user) {
+                    document.getElementById('profile-name').textContent = data.user.name || '-';
+                    document.getElementById('profile-email').textContent = data.user.email || '-';
+                    
+                    // Cargar datos en el formulario de edición
+                    document.getElementById('edit-name').value = data.user.name || '';
+                    document.getElementById('edit-email').value = data.user.email || '';
+                }
+            } catch (error) {
+                console.error('Error cargando perfil:', error);
+                alert('Error al cargar tu perfil');
+            }
+        }
+
+        // TOGGLE EDIT MODE
+        function toggleEditMode() {
+            const viewMode = document.getElementById('profile-view-mode');
+            const editMode = document.getElementById('profile-edit-mode');
+            const editBtn = document.getElementById('edit-toggle-btn');
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+
+            viewMode.classList.add('hidden');
+            editMode.classList.remove('hidden');
+            editBtn.classList.add('hidden');
+            cancelBtn.classList.remove('hidden');
+        }
+
+        // CANCEL EDIT MODE
+        function cancelEdit() {
+            const viewMode = document.getElementById('profile-view-mode');
+            const editMode = document.getElementById('profile-edit-mode');
+            const editBtn = document.getElementById('edit-toggle-btn');
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+
+            viewMode.classList.remove('hidden');
+            editMode.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+            cancelBtn.classList.add('hidden');
+        }
+
+        // SAVE PROFILE CHANGES
+        async function saveProfile(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('edit-name').value.trim();
+            const email = document.getElementById('edit-email').value.trim();
+            const statusDiv = document.getElementById('save-status');
+
+            if (!name || !email) {
+                statusDiv.textContent = '❌ Por favor completa todos los campos';
+                statusDiv.className = 'bg-red-100 border border-red-300 text-red-800 hidden';
+                statusDiv.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Actualizar vista
+                    document.getElementById('profile-name').textContent = name;
+                    document.getElementById('profile-email').textContent = email;
+
+                    // Mostrar mensaje de éxito
+                    statusDiv.textContent = '✓ Perfil actualizado exitosamente';
+                    statusDiv.className = 'bg-green-100 border border-green-300 text-green-800';
+                    statusDiv.classList.remove('hidden');
+
+                    // Volver a modo visualización después de 2 segundos
+                    setTimeout(() => {
+                        cancelEdit();
+                        statusDiv.classList.add('hidden');
+                    }, 2000);
+                } else {
+                    statusDiv.textContent = '❌ Error: ' + (data.message || 'No se pudo actualizar el perfil');
+                    statusDiv.className = 'bg-red-100 border border-red-300 text-red-800';
+                    statusDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error actualizando perfil:', error);
+                statusDiv.textContent = '❌ Error de conexión. Intenta de nuevo.';
+                statusDiv.className = 'bg-red-100 border border-red-300 text-red-800';
+                statusDiv.classList.remove('hidden');
+            }
+        }
+
+
+        // ELIMINAR CUENTA
+        async function deleteAccount() {
+            const confirmed = confirm('⚠️ ¿Estás seguro que deseas eliminar tu cuenta? Esta acción es permanente e irreversible. Se eliminarán todas tus reservaciones.');
+            
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users/me', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert('Tu cuenta ha sido eliminada exitosamente');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo eliminar la cuenta'));
+                }
+            } catch (error) {
+                console.error('Error eliminando cuenta:', error);
+                alert('Error al eliminar la cuenta. Intenta de nuevo.');
             }
         }
 

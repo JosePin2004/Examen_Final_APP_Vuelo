@@ -16,6 +16,9 @@
             </h1>
             <div class="flex gap-4 items-center">
                 <span class="text-white text-sm">Bienvenido, <strong id="adminName">Admin</strong></span>
+                <a href="/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold transition shadow">
+                    ← Volver al Catálogo
+                </a>
                 <button onclick="logout()" class="bg-white text-red-600 hover:bg-gray-200 px-4 py-2 rounded text-sm font-bold transition shadow">
                     Cerrar Sesión
                 </button>
@@ -571,6 +574,18 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
+                
+                // Cargar información de vuelos para mostrar origen y destino
+                const flightsResponse = await fetch('/api/flights', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const flightsData = await flightsResponse.json();
+                const flights = flightsData.data || flightsData;
+                
+                // Crear un mapa de vuelos para búsqueda rápida
+                window.flightsMap = {};
+                flights.forEach(f => window.flightsMap[f.id] = f);
+                
                 renderAllReservations(data.data || []);
             } catch (error) {
                 console.error(error);
@@ -621,6 +636,10 @@
                 const statusColor = res.status === 'approved' ? 'green' : res.status === 'pending' ? 'yellow' : 'red';
                 const statusText = res.status === 'approved' ? 'Aprobada' : res.status === 'pending' ? 'Pendiente' : 'Rechazada';
                 const statusBg = res.status === 'approved' ? 'bg-green-50' : res.status === 'pending' ? 'bg-yellow-50' : 'bg-red-50';
+                
+                // Obtener información del vuelo
+                const flight = window.flightsMap ? window.flightsMap[res.flight_id] : null;
+                const flightRoute = flight ? `${flight.origin} ✈️ ${flight.destination}` : 'Vuelo no disponible';
 
                 const item = `
                     <div class="border border-gray-200 rounded-lg p-4 ${statusBg}">
@@ -629,6 +648,8 @@
                                 <p class="font-bold">Reserva #${res.id}</p>
                                 <p class="text-sm text-gray-600">Usuario: ${res.user?.name || 'Desconocido'} (${res.user?.email || '-'})</p>
                                 <p class="text-sm text-gray-600">Vuelo ID: ${res.flight_id}</p>
+                                <p class="text-sm text-blue-600 font-semibold">${flightRoute}</p>
+                                <p class="text-sm text-gray-600">Asiento: ${res.seat_number || 'N/A'}</p>
                                 <p class="text-sm text-${statusColor}-600 font-bold mt-2">Estado: ${statusText}</p>
                             </div>
                             <div class="flex gap-2">
