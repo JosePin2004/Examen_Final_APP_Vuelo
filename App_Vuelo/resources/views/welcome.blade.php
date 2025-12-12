@@ -121,10 +121,13 @@
             flights.forEach(flight => {
                 const card = document.createElement('div');
                 card.className = 'rounded-lg border border-white/10 bg-white/5 p-4 text-gray-200 shadow-sm hover:border-red-400/60 transition';
+                const seatsInfo = flight.economy_seats && flight.business_seats 
+                    ? `Turista: ${flight.economy_seats} | Ejecutivo: ${flight.business_seats}` 
+                    : flight.seats ?? '—';
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm text-gray-400">${flight.code || 'Vuelo'}</span>
-                        <span class="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300">${flight.seats ?? '—'} asientos</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300">${seatsInfo}</span>
                     </div>
                     <div class="text-lg font-semibold">${flight.origin} → ${flight.destination}</div>
                     <div class="text-sm text-gray-400 mt-1">Salida: ${formatDate(flight.departure_time)}</div>
