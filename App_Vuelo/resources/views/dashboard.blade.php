@@ -178,13 +178,76 @@
             try {
                 const response = await fetch('/api/flights');
                 const data = await response.json();
-                const flights = data.data || data;
-                window.flightsData = {};
-                flights.forEach(f => window.flightsData[f.id] = f);
-                renderFlights(flights);
+                
+                // Extraer el array de vuelos (puede venir en data.data o directamente)
+                let flights = Array.isArray(data) ? data : (data.data || []);
+
+                // 1. Apuntamos al contenedor correcto (Revisa que tu HTML tenga este ID)
+                const container = document.getElementById('flights-grid'); 
+                container.innerHTML = ''; // Limpiamos el "Cargando..."
+
+                if (!Array.isArray(flights) || flights.length === 0) {
+                    container.innerHTML = '<p class="col-span-3 text-center text-gray-500">No hay vuelos disponibles.</p>';
+                    return;
+                }
+
+                flights.forEach(flight => {
+                    // 2. LÓGICA DE IMAGEN: Si no tiene foto, ponemos una de "placeholder"
+                    // Nota: Si tu columna en la BD se llama distinto (ej: 'foto'), cambia flight.image_url
+                    const imagenSrc = flight.image_url ? flight.image_url : 'https://placehold.co/600x400?text=Vuelo+Disponible';
+
+                    // 3. HTML CON LA IMAGEN AGREGADA
+                    const card = `
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition border border-gray-100 group">
+                            
+                            <div class="h-48 overflow-hidden relative">
+                                <img src="${imagenSrc}" 
+                                     alt="Vuelo a ${flight.destination}" 
+                                     class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                                <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
+                                    Vuelo #${flight.id}
+                                </div>
+                            </div>
+
+                            <div class="p-5">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="text-lg font-bold text-gray-800">
+                                        ${flight.origin} ✈️ ${flight.destination}
+                                    </h3>
+                                </div>
+                                
+                                <div class="space-y-2 text-sm text-gray-600 mb-4">
+                                    <p>📅 Salida: ${flight.departure_date || 'Por confirmar'}</p>
+                                    <p class="font-semibold text-blue-600 text-lg">$${flight.price || '0.00'}</p>
+                                </div>
+
+                                <button onclick="selectFlight(${flight.id})" 
+                                    class="w-full bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white font-bold py-2 px-4 rounded transition">
+                                    Reservar Este Vuelo
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+
+                // También actualizamos el SELECT del formulario de reserva (opcional)
+                updateSelectOptions(flights);
+
             } catch (error) {
-                console.error(error);
-                document.getElementById('flights-grid').innerHTML = '<div class="text-center text-red-500">Error cargando vuelos</div>';
+                console.error("Error cargando vuelos", error);
+                document.getElementById('flights-grid').innerHTML = '<p class="text-red-500">Error al cargar el catálogo.</p>';
+            }
+        }
+
+        // Función auxiliar para llenar el select (si lo tienes separado)
+        function updateSelectOptions(flights) {
+            const select = document.getElementById('flight_id');
+            if(select) {
+                select.innerHTML = '<option value="">-- Elige un destino --</option>';
+                flights.forEach(f => {
+                    select.innerHTML += `<option value="${f.id}">${f.origin} -> ${f.destination}</option>`;
+                });
             }
         }
 

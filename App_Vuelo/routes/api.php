@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/flights', [FlightController::class, 'store']);
     Route::put('/flights/{id}', [FlightController::class, 'update']);
     Route::delete('/flights/{id}', [FlightController::class, 'destroy']);
+    Route::post('/flights/upload-image', [FlightController::class, 'uploadImage']);
 
     // Admin endpoints
     Route::get('/admin/reservations', function () {
