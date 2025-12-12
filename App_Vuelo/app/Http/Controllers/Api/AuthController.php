@@ -85,4 +85,48 @@ class AuthController extends Controller
             'user' => $request->user()
         ]);
     }
+
+    // Función para eliminar la cuenta del usuario
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+
+        // Eliminar todas las reservaciones del usuario
+        $user->reservations()->delete();
+
+        // Eliminar todos los tokens del usuario (todas las sesiones)
+        $user->tokens()->delete();
+
+        // Eliminar el usuario
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tu cuenta y todas tus reservaciones han sido eliminadas exitosamente'
+        ]);
+    }
+
+    // Función para actualizar el perfil del usuario
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        // Validar los datos
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ]);
+
+        // Actualizar los datos
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perfil actualizado exitosamente',
+            'user' => $user
+        ]);
+    }
 }

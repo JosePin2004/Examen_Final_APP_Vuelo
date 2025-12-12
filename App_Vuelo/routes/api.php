@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/users/me', [AuthController::class, 'updateProfile']);
+    Route::delete('/users/me', [AuthController::class, 'deleteAccount']);
 
     // Reservaciones (Usuario normal)
     Route::get('/reservations', [ReservationController::class, 'index']);
