@@ -269,6 +269,7 @@
                 }
 
                 flights.forEach(flight => {
+                    const displayPrice = Number(flight.price ?? flight.economy_price ?? flight.business_price ?? 0).toFixed(2);
                     // 2. LÓGICA DE IMAGEN: Si no tiene foto, ponemos una de "placeholder"
                     // Nota: Si tu columna en la BD se llama distinto (ej: 'foto'), cambia flight.image_url
                     const imagenSrc = flight.image_url ? flight.image_url : 'https://placehold.co/600x400?text=Vuelo+Disponible';
@@ -295,7 +296,7 @@
                                 
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">
                                     <p>📅 Salida: ${flight.departure_time ? new Date(flight.departure_time).toLocaleString('es-ES') : 'Por confirmar'}</p>
-                                    <p class="font-semibold text-blue-600 text-lg">$${parseFloat(flight.economy_price || flight.price || '0.00').toFixed(2)}</p>
+                                    <p class="font-semibold text-blue-600 text-lg">$${displayPrice}</p>
                                 </div>
 
                                 <button onclick="goToReservation(${flight.id})" 
@@ -427,7 +428,9 @@
             }
 
             let maxSeats = seatClass === 'economy' ? flight.economy_seats : flight.business_seats;
-            let price = seatClass === 'economy' ? flight.economy_price : flight.business_price;
+            let price = seatClass === 'economy'
+                ? (flight.economy_price ?? flight.price ?? 0)
+                : (flight.business_price ?? flight.price ?? 0);
             let seatPrefix = seatClass === 'economy' ? 'E' : 'B';
 
             seatNumberSelect.innerHTML = '<option value="">Selecciona un asiento</option>';
