@@ -229,6 +229,15 @@
                 button.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
                 button.classList.remove('text-gray-600', 'hover:text-blue-600');
             }
+
+            // Cargar datos específicos al entrar en cada tab
+            if (tabName === 'catalog') {
+                loadFlights();
+            } else if (tabName === 'reservations') {
+                loadReservations();
+            } else if (tabName === 'profile') {
+                loadProfileInfo();
+            }
         }
 
         // VERIFICAR SI ES ADMIN
@@ -269,18 +278,23 @@
                 }
 
                 flights.forEach(flight => {
-                    const displayPrice = Number(flight.price ?? flight.economy_price ?? flight.business_price ?? 0).toFixed(2);
-                    // 2. LÓGICA DE IMAGEN: Si no tiene foto, ponemos una de "placeholder"
-                    // Nota: Si tu columna en la BD se llama distinto (ej: 'foto'), cambia flight.image_url
+                    const economyPrice = Number(flight.economy_price ?? flight.price ?? 0).toFixed(2);
+                    const businessPrice = Number(flight.business_price ?? flight.price ?? 0).toFixed(2);
                     const imagenSrc = flight.image_url ? flight.image_url : 'https://placehold.co/600x400?text=Vuelo+Disponible';
 
-                    // 3. HTML CON LA IMAGEN AGREGADA
+                    // Formato de fecha/hora sin conversión de zona horaria
+                    let salidaTexto = 'Por confirmar';
+                    if (flight.departure_time) {
+                        const [datePart, timePart] = String(flight.departure_time).split('T');
+                        const [y,m,d] = datePart.split('-');
+                        const hhmm = (timePart || '').substring(0,5);
+                        salidaTexto = `${d}/${m}/${y} ${hhmm}`;
+                    }
+
                     const card = `
                         <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition border border-gray-100 group">
-                            
                             <div class="h-48 overflow-hidden relative">
-                                <img src="${imagenSrc}" 
-                                     alt="Vuelo a ${flight.destination}" 
+                                <img src="${imagenSrc}" alt="Vuelo a ${flight.destination}"
                                      class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
                                 <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
                                     Vuelo #${flight.id}
@@ -289,17 +303,26 @@
 
                             <div class="p-5">
                                 <div class="flex justify-between items-center mb-3">
-                                    <h3 class="text-lg font-bold text-gray-800">
-                                        ${flight.origin} ✈️ ${flight.destination}
-                                    </h3>
-                                </div>
-                                
-                                <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <p>📅 Salida: ${flight.departure_time ? new Date(flight.departure_time).toLocaleString('es-ES') : 'Por confirmar'}</p>
-                                    <p class="font-semibold text-blue-600 text-lg">$${displayPrice}</p>
+                                    <h3 class="text-lg font-bold text-gray-800">${flight.origin} ✈️ ${flight.destination}</h3>
                                 </div>
 
-                                <button onclick="goToReservation(${flight.id})" 
+                                <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                                    <p class="text-xs text-gray-500 font-bold mb-1">📅 Salida</p>
+                                    <p class="text-sm text-gray-800 font-bold">${salidaTexto}</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-blue-50 rounded-lg p-3">
+                                        <p class="text-xs font-bold text-blue-700 mb-1">✈️ Turista</p>
+                                        <p class="text-blue-600 font-bold text-lg">$${economyPrice}</p>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-3">
+                                        <p class="text-xs font-bold text-green-700 mb-1">👔 Ejecutivo</p>
+                                        <p class="text-green-600 font-bold text-lg">$${businessPrice}</p>
+                                    </div>
+                                </div>
+
+                                <button onclick="goToReservation(${flight.id})"
                                     class="w-full bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white font-bold py-2 px-4 rounded transition">
                                     Reservar Este Vuelo
                                 </button>
@@ -340,32 +363,37 @@
             }
 
             flights.forEach(flight => {
+                const economyPrice = flight.economy_price || flight.price || 0;
+                const businessPrice = flight.business_price || flight.price || 0;
+                
+                // Formatear fechas sin conversión de zona horaria
+                const departureDateStr = flight.departure_time.split('T')[0].split('-').reverse().join('/');
+                const departureTimeStr = flight.departure_time.split('T')[1].substring(0, 5);
+                
                 const item = `
                     <div class="border border-gray-200 rounded-lg p-5 bg-white hover:shadow-lg transition">
                         <div class="mb-4">
-                            <h3 class="text-lg font-bold text-gray-800">${flight.origin} → ${flight.destination}</h3>
-                            <p class="text-sm text-gray-500">Vuelo ID: <strong>#${flight.id}</strong></p>
+                            <h3 class="text-lg font-bold text-gray-800">${flight.origin} ✈️ ${flight.destination}</h3>
+                            <p class="text-sm text-gray-500">Vuelo #${flight.id}</p>
                         </div>
-                        <div class="space-y-2 mb-4 text-sm">
-                            <p><span class="text-gray-600 font-semibold">Salida:</span> ${new Date(flight.departure_time).toLocaleString('es-ES')}</p>
-                            <p><span class="text-gray-600 font-semibold">Llegada:</span> ${new Date(flight.arrival_time).toLocaleString('es-ES')}</p>
+                        <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                            <p class="text-xs text-gray-500 font-bold mb-1">📅 Salida</p>
+                            <p class="text-sm text-gray-800 font-bold">${departureDateStr} ${departureTimeStr}</p>
                         </div>
                         
                         <!-- CLASE TURISTA -->
-                        <div class="bg-blue-50 rounded-lg p-3 mb-3">
-                            <p class="font-bold text-blue-700 text-sm mb-2">✈️ Clase Turista</p>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-600">Asientos disponibles: <strong>${flight.economy_seats}</strong></span>
-                                <span class="text-blue-600 font-bold">$${parseFloat(flight.economy_price).toFixed(2)}</span>
+                        <div class="bg-blue-50 rounded-lg p-3 mb-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-blue-700 text-sm">✈️ Turista</span>
+                                <span class="text-blue-600 font-bold text-lg">$${parseFloat(economyPrice).toFixed(2)}</span>
                             </div>
                         </div>
 
                         <!-- CLASE EJECUTIVO -->
-                        <div class="bg-yellow-50 rounded-lg p-3 mb-4">
-                            <p class="font-bold text-yellow-700 text-sm mb-2">👑 Clase Ejecutivo</p>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-600">Asientos disponibles: <strong>${flight.business_seats}</strong></span>
-                                <span class="text-yellow-600 font-bold">$${parseFloat(flight.business_price).toFixed(2)}</span>
+                        <div class="bg-green-50 rounded-lg p-3 mb-4">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-green-700 text-sm">👔 Ejecutivo</span>
+                                <span class="text-green-600 font-bold text-lg">$${parseFloat(businessPrice).toFixed(2)}</span>
                             </div>
                         </div>
 
@@ -585,22 +613,40 @@
                 
                 // Obtener información del vuelo
                 const flight = window.flightsMap ? window.flightsMap[reserva.flight_id] : null;
-                const flightRoute = flight ? `${flight.origin} ✈️ ${flight.destination}` : 'Vuelo no disponible';
+                const originText = flight ? (flight.origin_code ? `${flight.origin} (${flight.origin_code})` : flight.origin) : 'Origen';
+                const destText   = flight ? (flight.destination_code ? `${flight.destination} (${flight.destination_code})` : flight.destination) : 'Destino';
+                const flightRoute = flight ? `${originText} ✈️ ${destText}` : 'Vuelo no disponible';
                 
+                // Calcular el precio según la clase de asiento
+                let price = 0;
+                if (flight) {
+                    const base = reserva.seat_class === 'economy' ? (flight.economy_price ?? flight.price ?? 0) : (flight.business_price ?? flight.price ?? 0);
+                    price = Number(base);
+                }
+                
+                // Formatear clase de asiento
+                const seatClassText = reserva.seat_class === 'economy' ? '✈️ Turista' : '👔 Ejecutiva';
+                
+                const createdAt = new Date(reserva.created_at);
+                const createdDate = !isNaN(createdAt.getTime()) ? createdAt.toLocaleDateString('es-ES') : '';
+
                 const item = `
-                    <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition bg-gray-50">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Reserva #${reserva.id}</p>
+                    <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-start hover:shadow-md transition bg-white">
+                        <div class="space-y-1">
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">RESERVA #${reserva.id}</p>
                             <p class="text-lg font-bold text-gray-800">Vuelo ID: ${reserva.flight_id}</p>
-                            <p class="text-sm text-blue-600 font-semibold mb-2">${flightRoute}</p>
+                            <p class="text-sm text-blue-600 font-semibold">${flightRoute}</p>
                             <p class="text-sm text-gray-600">Asiento: ${reserva.seat_number || 'N/A'}</p>
-                            <p class="text-sm ${statusClass} font-medium">Estado: ${statusText}</p>
-                            <p class="text-xs text-gray-400 mt-1">📅 ${new Date(reserva.created_at).toLocaleDateString()}</p>
+                            <p class="text-sm text-gray-600">Estado: <span class="${statusClass} font-semibold">${statusText}</span></p>
+                            <p class="text-xs text-gray-400">📅 ${createdDate}</p>
                         </div>
-                        <button onclick="deleteReservation(${reserva.id})" 
-                                class="bg-white text-red-500 border border-red-200 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-bold transition">
-                            Cancelar
-                        </button>
+                        <div class="flex flex-col items-end gap-2">
+                            <p class="text-lg font-bold text-green-600">$${price.toFixed(2)}</p>
+                            <button onclick="deleteReservation(${reserva.id})" 
+                                    class="bg-white text-red-500 border border-red-200 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-bold transition">
+                                Cancelar
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.innerHTML += item;
