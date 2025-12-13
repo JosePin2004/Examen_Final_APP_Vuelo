@@ -88,8 +88,13 @@
         const loginUrl = '{{ route('login') }}';
 
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? 'Fecha no disponible' : date.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
+            if (!dateString) return 'Fecha no disponible';
+            // Formato directo ISO: YYYY-MM-DDTHH:mm[:ss]
+            const parts = String(dateString).split('T');
+            if (parts.length < 2) return 'Fecha no disponible';
+            const [y,m,d] = parts[0].split('-');
+            const hhmm = parts[1].substring(0,5);
+            return `${d}/${m}/${y}, ${hhmm}`;
         }
 
         async function loadFlights() {
@@ -121,9 +126,11 @@
             flights.forEach(flight => {
                 const card = document.createElement('div');
                 card.className = 'rounded-lg border border-white/10 bg-white/5 p-4 text-gray-200 shadow-sm hover:border-red-400/60 transition';
-                const seatsInfo = flight.economy_seats && flight.business_seats 
-                    ? `Turista: ${flight.economy_seats} | Ejecutivo: ${flight.business_seats}` 
-                    : flight.seats ?? '—';
+                const seatsInfo = (flight.economy_seats ?? null) !== null && (flight.business_seats ?? null) !== null
+                    ? `Turista: ${flight.economy_seats} | Ejecutivo: ${flight.business_seats}`
+                    : (flight.seats ?? '—');
+                const economyPrice = Number(flight.economy_price ?? flight.price ?? 0).toFixed(2);
+                const businessPrice = Number(flight.business_price ?? flight.price ?? 0).toFixed(2);
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm text-gray-400">${flight.code || 'Vuelo'}</span>
@@ -132,7 +139,16 @@
                     <div class="text-lg font-semibold">${flight.origin} → ${flight.destination}</div>
                     <div class="text-sm text-gray-400 mt-1">Salida: ${formatDate(flight.departure_time)}</div>
                     <div class="text-sm text-gray-400">Llegada: ${formatDate(flight.arrival_time)}</div>
-                    <div class="text-xl font-bold text-red-300 mt-3">$${Number(flight.price || 0).toFixed(2)}</div>
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div class="rounded bg-red-500/10 border border-red-500/20 p-2">
+                            <div class="text-xs text-red-200">✈️ Turista</div>
+                            <div class="text-lg font-bold text-red-300">$${economyPrice}</div>
+                        </div>
+                        <div class="rounded bg-green-500/10 border border-green-500/20 p-2">
+                            <div class="text-xs text-green-200">👔 Ejecutivo</div>
+                            <div class="text-lg font-bold text-green-300">$${businessPrice}</div>
+                        </div>
+                    </div>
                     <div class="mt-3 text-sm text-gray-300" id="weather-preview-${flight.id}">
                         <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-semibold" onclick="loadWeather(${flight.id}, 'weather-preview-${flight.id}')">Ver clima destino</button>
                     </div>
@@ -151,7 +167,9 @@
 
             flights.forEach(flight => {
                 const card = document.createElement('div');
-                card.className = 'rounded-xl bg-white/5 border border-white/10 p-5 space-y-3 shadow-sm hover:border-red-400/60 transition';
+                card.className = 'rounded-xl bg_white/5 border border_white/10 p-5 space-y-3 shadow-sm hover_border-red-400/60 transition'.replace(/_/g,'');
+                const economyPrice = Number(flight.economy_price ?? flight.price ?? 0).toFixed(2);
+                const businessPrice = Number(flight.business_price ?? flight.price ?? 0).toFixed(2);
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="text-lg font-semibold">${flight.origin} → ${flight.destination}</div>
@@ -159,7 +177,16 @@
                     </div>
                     <div class="text-sm text-gray-300">Salida: ${formatDate(flight.departure_time)}</div>
                     <div class="text-sm text-gray-300">Llegada: ${formatDate(flight.arrival_time)}</div>
-                    <div class="text-2xl font-bold text-red-300">$${Number(flight.price || 0).toFixed(2)}</div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded bg-red-500/10 border border-red-500/20 p-3">
+                            <div class="text-xs text-red-200">✈️ Turista</div>
+                            <div class="text-xl font-bold text-red-300">$${economyPrice}</div>
+                        </div>
+                        <div class="rounded bg-green-500/10 border border-green-500/20 p-3">
+                            <div class="text-xs text-green-200">👔 Ejecutivo</div>
+                            <div class="text-xl font-bold text-green-300">$${businessPrice}</div>
+                        </div>
+                    </div>
                     <div class="text-sm text-gray-300" id="weather-catalog-${flight.id}">
                         <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-semibold" onclick="loadWeather(${flight.id}, 'weather-catalog-${flight.id}')">Ver clima destino</button>
                     </div>

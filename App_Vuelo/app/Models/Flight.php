@@ -16,6 +16,10 @@ class Flight extends Model
         'arrival_time',
         'price',
         'image_url',
+        'economy_seats',
+        'business_seats',
+        'economy_price',
+        'business_price',
     ];
 
     protected function casts(): array
@@ -24,6 +28,8 @@ class Flight extends Model
             'departure_time' => 'datetime',
             'arrival_time' => 'datetime',
             'price' => 'decimal:2',
+            'economy_price' => 'decimal:2',
+            'business_price' => 'decimal:2',
         ];
     }
 

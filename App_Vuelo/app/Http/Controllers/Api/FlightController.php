@@ -51,7 +51,9 @@ class FlightController extends Controller
         'departure_time' => 'required|date_format:Y-m-d\TH:i',
         // Nota: Asegúrate de que el nombre del campo coincida con tu HTML (departure_time vs departure_date)
         'arrival_time' => 'required|date_format:Y-m-d\TH:i', 
-        'price' => 'required|numeric|min:0.01',
+        'price' => 'nullable|numeric|min:0.01',
+        'economy_price' => 'required|numeric|min:0.01',
+        'business_price' => 'required|numeric|min:0.01',
         
         // CAMBIO CLAVE: No validamos imagen como archivo, sino la URL como texto
         'image_url' => 'nullable|string' 
@@ -64,7 +66,9 @@ class FlightController extends Controller
             'destination' => $request->destination,
             'departure_time' => $request->departure_time,
             'arrival_time' => $request->arrival_time,
-            'price' => $request->price,
+            'price' => $request->price ?? $request->economy_price,
+            'economy_price' => $request->economy_price,
+            'business_price' => $request->business_price,
             
             // AQUÍ ESTÁ LA MAGIA: Guardamos lo que el JS puso en el input hidden
             'image_url' => $request->image_url, 
@@ -97,15 +101,22 @@ class FlightController extends Controller
             'destination' => 'required|string|max:100',
             'departure_time' => 'required|date',
             'arrival_time' => 'required|date|after:departure_time',
-            'price' => 'required|numeric|min:0.01',
+            'price' => 'nullable|numeric|min:0.01',
+            'economy_price' => 'required|numeric|min:0.01',
+            'business_price' => 'required|numeric|min:0.01',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB
+            'image_url' => 'nullable|string',
         ]);
 
         try {
             $imageUrl = $flight->image_url;
 
+            // Si viene image_url desde el formulario (nueva subida), usarla
+            if ($request->has('image_url') && $request->image_url) {
+                $imageUrl = $request->image_url;
+            }
             // Si hay nueva imagen, subirla a Firebase
-            if ($request->hasFile('image') && FirebaseService::isConfigured()) {
+            elseif ($request->hasFile('image') && FirebaseService::isConfigured()) {
                 try {
                     // Eliminar imagen anterior si existe
                     if ($flight->image_url) {
@@ -127,7 +138,9 @@ class FlightController extends Controller
                 'destination' => $request->destination,
                 'departure_time' => $request->departure_time,
                 'arrival_time' => $request->arrival_time,
-                'price' => $request->price,
+                'price' => $request->price ?? $request->economy_price,
+                'economy_price' => $request->economy_price,
+                'business_price' => $request->business_price,
                 'image_url' => $imageUrl,
             ]);
 

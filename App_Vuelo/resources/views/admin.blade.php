@@ -83,11 +83,19 @@
                                        required>
                             </div>
 
-                            <div>
-                                <label class="block text-gray-600 text-sm font-bold mb-2">Precio (USD)</label>
-                                <input type="number" id="price" step="0.01" 
-                                       class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                       placeholder="99.99" required>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-gray-600 text-sm font-bold mb-2">✈️ Precio Turista</label>
+                                    <input type="number" id="economy_price" step="0.01" 
+                                           class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                                           placeholder="50.00" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-600 text-sm font-bold mb-2">👔 Precio Ejecutivo</label>
+                                    <input type="number" id="business_price" step="0.01" 
+                                           class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                                           placeholder="85.00" required>
+                                </div>
                             </div>
 
                             <div>
@@ -327,23 +335,52 @@
             }
 
             flights.forEach(flight => {
+                const economyPrice = flight.economy_price || flight.price || 0;
+                const businessPrice = flight.business_price || flight.price || 0;
+                
+                // Formatear fechas y horas - Manejo directo sin conversión de zona horaria
+                const departureDateStr = flight.departure_time.split('T')[0].split('-').reverse().join('/');
+                const departureTimeStr = flight.departure_time.split('T')[1].substring(0, 5);
+                
+                const arrivalDateStr = flight.arrival_time.split('T')[0].split('-').reverse().join('/');
+                const arrivalTimeStr = flight.arrival_time.split('T')[1].substring(0, 5);
+                
                 const item = `
-                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
+                    <div class="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-lg transition">
+                        <div class="flex justify-between items-start gap-4">
                             <div class="flex-1">
-                                <p class="text-xs text-gray-500 uppercase font-bold">Vuelo #${flight.id}</p>
-                                <p class="text-lg font-bold text-gray-800">${flight.origin} → ${flight.destination}</p>
-                                <p class="text-sm text-gray-600 mt-2">
-                                    📅 ${new Date(flight.departure_time).toLocaleDateString()} 
-                                    ⏰ ${new Date(flight.departure_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </p>
-                                <p class="text-sm text-blue-600 font-bold mt-2">💰 $${parseFloat(flight.price).toFixed(2)}</p>
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wide mb-1">Vuelo #${flight.id}</p>
+                                <p class="text-xl font-bold text-gray-800 mb-3">${flight.origin} → ${flight.destination}</p>
+                                
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div class="bg-blue-50 p-3 rounded-lg">
+                                        <p class="text-xs text-gray-500 font-bold mb-1">🛫 Salida</p>
+                                        <p class="text-sm font-bold text-gray-800">${departureDateStr}</p>
+                                        <p class="text-sm text-blue-600 font-bold">${departureTimeStr}</p>
+                                    </div>
+                                    <div class="bg-green-50 p-3 rounded-lg">
+                                        <p class="text-xs text-gray-500 font-bold mb-1">🛬 Llegada</p>
+                                        <p class="text-sm font-bold text-gray-800">${arrivalDateStr}</p>
+                                        <p class="text-sm text-green-600 font-bold">${arrivalTimeStr}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-4 bg-gray-50 p-3 rounded-lg">
+                                    <div class="flex-1">
+                                        <p class="text-xs text-gray-500 font-bold mb-1">Precio Turista</p>
+                                        <p class="text-lg text-blue-600 font-bold">✈️ $${parseFloat(economyPrice).toFixed(2)}</p>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-gray-500 font-bold mb-1">Precio Ejecutivo</p>
+                                        <p class="text-lg text-green-600 font-bold">👔 $${parseFloat(businessPrice).toFixed(2)}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="editFlight(${flight.id})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-2 rounded text-sm font-bold">
+                            <div class="flex flex-col gap-2">
+                                <button onclick="editFlight(${flight.id})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow">
                                     ✏️ Editar
                                 </button>
-                                <button onclick="deleteFlight(${flight.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-bold">
+                                <button onclick="deleteFlight(${flight.id})" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow">
                                     🗑️ Eliminar
                                 </button>
                             </div>
@@ -367,7 +404,9 @@
                 destination: document.getElementById('destination').value,
                 departure_time: document.getElementById('departure_time').value,
                 arrival_time: document.getElementById('arrival_time').value,
-                price: document.getElementById('price').value,
+                economy_price: document.getElementById('economy_price').value,
+                business_price: document.getElementById('business_price').value,
+                price: document.getElementById('economy_price').value,
                 image_url: document.getElementById('firebaseUrl').value || null
             };
 
@@ -438,7 +477,8 @@
                 document.getElementById('destination').value = flight.destination;
                 document.getElementById('departure_time').value = flight.departure_time.slice(0, 16);
                 document.getElementById('arrival_time').value = flight.arrival_time.slice(0, 16);
-                document.getElementById('price').value = flight.price;
+                document.getElementById('economy_price').value = flight.economy_price || flight.price;
+                document.getElementById('business_price').value = flight.business_price || flight.price;
                 clearImagePreview();
                 document.getElementById('formTitle').textContent = `Editar Vuelo #${flight.id}`;
 
