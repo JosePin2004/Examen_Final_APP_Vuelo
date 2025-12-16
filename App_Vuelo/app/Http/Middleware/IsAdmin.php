@@ -16,8 +16,9 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         // Esta ruta es una vista estática
-        // La validación real ocurre en el JavaScript del admin.blade.php
+        // La validación real ocurre en el JavaScript del admin.blade.php 
         // Si el usuario no tiene token válido o no es admin, será redirigido por JavaScript
-        return $next($request);
+        //Es decir la validacion nose hace en el backend sino en el frontend
+        return $next($request); 
     }
 }

@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Agregar el campo rol a la tabla de usuarios
 {
     Schema::table('users', function (Blueprint $table) {
         // Agregamos el campo rol, por defecto será 'user' (pasajero)
@@ -20,7 +20,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar el campo rol de la tabla de usuarios
     {
         Schema::table('users', function (Blueprint $table) {
             //

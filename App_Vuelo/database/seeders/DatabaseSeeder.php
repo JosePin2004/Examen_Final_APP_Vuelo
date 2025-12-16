@@ -10,7 +10,7 @@ use Carbon\Carbon; // Para manejar fechas
 
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
+    public function run(): void // Sembrar datos iniciales en la base de datos
     {
         // 1. Crear un USUARIO ADMIN (Para que tú puedas entrar)
         User::create([
@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
+    
         // 2. Crear un USUARIO PASAJERO (Para pruebas)
         User::create([
             'name' => 'Pasajero Test',

@@ -221,9 +221,10 @@
     </div>
 
     <script>
+        // OBTENER TOKEN DEL LOCALSTORAGE
         const token = localStorage.getItem('token');
         
-        // Verificar token inmediatamente antes de cargar contenido
+        // SI NO EXISTE TOKEN → REDIRIGIR A LOGIN
         if (!token) {
             window.location.href = '/login';
         }
@@ -311,14 +312,15 @@
             if (tabName === 'reservations') loadReservations();
         }
 
-        // CARGAR VUELOS
+        // OBTENER LISTA DE VUELOS DEL BACKEND
         async function loadFlights() {
             try {
+                // GET /api/flights - Obtiene todos los vuelos
                 const response = await fetch('/api/flights', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                renderFlights(data.data || data);
+                renderFlights(data.data || data);  // Renderizar en la página
             } catch (error) {
                 console.error(error);
             }
@@ -391,10 +393,11 @@
             });
         }
 
-        // GUARDAR VUELO
+        // CREAR O ACTUALIZAR VUELO
         async function guardarVuelo(event) {
             event.preventDefault();
             
+            // SI flight_id TIENE VALOR → ES EDICIÓN, SINO → ES CREACIÓN
             const flightId = document.getElementById('flight_id').value;
             const isEdit = !!flightId;
 
@@ -411,9 +414,11 @@
             };
 
             try {
+                // PREPARAR URL Y MÉTODO SEGÚN SI ES EDICIÓN O CREACIÓN
                 const url = isEdit ? `/api/flights/${flightId}` : '/api/flights';
                 const method = isEdit ? 'PUT' : 'POST';
 
+                // ENVIAR DATOS AL BACKEND
                 const response = await fetch(url, {
                     method: method,
                     headers: {
@@ -431,11 +436,11 @@
                     resetForm();
                     loadFlights();
                 } else {
-                    alert('❌ Error: ' + (result.message || 'Intenta de nuevo'));
+                    alert(' Error: ' + (result.message || 'Intenta de nuevo'));
                     console.error('Response error:', result);
                 }
             } catch (error) {
-                alert('❌ Error de conexión: ' + error.message);
+                alert(' Error de conexión: ' + error.message);
                 console.error('Fetch error:', error);
             }
             
@@ -463,16 +468,18 @@
             document.getElementById('image-preview').classList.add('hidden');
         }
 
-        // EDITAR VUELO
+        // CARGAR VUELO PARA EDITAR
         async function editFlight(id) {
             try {
+                // GET /api/flights/{id} - Obtener datos del vuelo
                 const response = await fetch(`/api/flights/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
                 const flight = data.data || data;
 
-                document.getElementById('flight_id').value = flight.id;
+                // LLENAR FORMULARIO CON DATOS DEL VUELO
+                document.getElementById('flight_id').value = flight.id;  // Marcar como edición
                 document.getElementById('origin').value = flight.origin;
                 document.getElementById('destination').value = flight.destination;
                 document.getElementById('departure_time').value = flight.departure_time.slice(0, 16);
@@ -607,22 +614,23 @@
             }
         }
 
-        // CARGAR TODAS LAS RESERVACIONES
+        // OBTENER TODAS LAS RESERVACIONES DEL SISTEMA
         async function loadReservations() {
             try {
+                // GET /api/admin/reservations - Todas las reservas
                 const response = await fetch('/api/admin/reservations', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
                 
-                // Cargar información de vuelos para mostrar origen y destino
+                // OBTENER VUELOS PARA MOSTRAR RUTA
                 const flightsResponse = await fetch('/api/flights', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const flightsData = await flightsResponse.json();
                 const flights = flightsData.data || flightsData;
                 
-                // Crear un mapa de vuelos para búsqueda rápida
+                // CREAR MAPA {id: flight} PARA BÚSQUEDA RÁPIDA
                 window.flightsMap = {};
                 flights.forEach(f => window.flightsMap[f.id] = f);
                 
@@ -706,13 +714,14 @@
             });
         }
 
-        // ACTUALIZAR ESTADO DE RESERVACIÓN
+        // APROBAR O RECHAZAR RESERVACIÓN
         async function updateReservationStatus(id, newStatus) {
             if (!confirm(`¿Estás seguro de que quieres cambiar el estado a: ${newStatus}?`)) {
                 return;
             }
 
             try {
+                // PUT /api/reservations/{id} - Cambiar estado
                 const response = await fetch(`/api/reservations/${id}`, {
                     method: 'PUT',
                     headers: {
@@ -773,7 +782,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 
 <script>
-    // 1. CONFIGURACIÓN (Toma las llaves de tu archivo .env)
+    // CONFIGURACIÓN DE FIREBASE (Lee desde .env)
     const firebaseConfig = {
         apiKey: "{{ env('FIREBASE_API_KEY') }}",
         authDomain: "{{ env('FIREBASE_AUTH_DOMAIN') }}",
@@ -783,11 +792,11 @@
         appId: "{{ env('FIREBASE_APP_ID') }}"
     };
 
-    // Inicializar Firebase
+    // INICIALIZAR FIREBASE
     const app = firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // FUNCIÓN PARA SUBIR IMAGEN (botón separado)
+    // SUBIR IMAGEN A /api/flights/upload-image
     async function subirImagen() {
         const fileInput = document.getElementById('flight_image');
         const file = fileInput.files[0];
@@ -795,18 +804,14 @@
         const statusDiv = document.getElementById('image-status');
 
         if (!file) {
-            statusDiv.textContent = '❌ Selecciona una imagen primero';
-            statusDiv.className = 'text-sm text-center text-red-600';
+            statusDiv.textContent = ' Selecciona una imagen primero';
             return;
         }
 
-        // Mostrar estado
         btn.disabled = true;
         btn.innerText = '🔄 Subiendo...';
-        statusDiv.textContent = 'Subiendo imagen...';
-        statusDiv.className = 'text-sm text-center text-blue-600';
 
-        // Crear FormData
+        // CREAR FORMDATA Y ENVIAR AL BACKEND
         const formData = new FormData();
         formData.append('image', file);
 
@@ -823,18 +828,14 @@
             const data = await response.json();
 
             if (data.success) {
-                // Guardar URL en el campo oculto
+                // GUARDAR URL EN CAMPO OCULTO PARA USAR AL GUARDAR VUELO
                 document.getElementById('firebaseUrl').value = data.image_url;
-                statusDiv.textContent = '✓ Imagen subida exitosamente';
-                statusDiv.className = 'text-sm text-center text-green-600';
-                console.log('URL de imagen: ' + data.image_url);
+                statusDiv.textContent = '✓ Imagen subida';
             } else {
-                statusDiv.textContent = '❌ Error: ' + data.message;
-                statusDiv.className = 'text-sm text-center text-red-600';
+                statusDiv.textContent = ' Error: ' + data.message;
             }
         } catch (error) {
-            statusDiv.textContent = '❌ Error de conexión';
-            statusDiv.className = 'text-sm text-center text-red-600';
+            statusDiv.textContent = ' Error de conexión';
             console.error(error);
         } finally {
             btn.disabled = false;

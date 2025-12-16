@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Crear las tablas necesarias para la cache
     {
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('expiration');
         });
 
-        Schema::create('cache_locks', function (Blueprint $table) {
+        Schema::create('cache_locks', function (Blueprint $table) { //tabla para los locks de la cache
             $table->string('key')->primary();
             $table->string('owner');
             $table->integer('expiration');
@@ -27,7 +27,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar las tablas creadas para la cache
     {
         Schema::dropIfExists('cache');
         Schema::dropIfExists('cache_locks');

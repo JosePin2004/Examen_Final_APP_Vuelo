@@ -9,7 +9,7 @@ class Flight extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+    protected $fillable = [ // Campos que se llean
         'origin',
         'destination',
         'departure_time',
@@ -22,7 +22,7 @@ class Flight extends Model
         'business_price',
     ];
 
-    protected function casts(): array
+    protected function casts(): array // Tipos de datos
     {
         return [
             'departure_time' => 'datetime',
@@ -33,8 +33,8 @@ class Flight extends Model
         ];
     }
 
-    public function reservations()
+    public function reservations() // Relación con Reservas
     {
-        return $this->hasMany(Reservation::class);
+        return $this->hasMany(Reservation::class); //1-m
     }
 }

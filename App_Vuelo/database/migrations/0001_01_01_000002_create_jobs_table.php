@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Crear las tablas necesarias para los trabajos en cola
     {
-        Schema::create('jobs', function (Blueprint $table) {
+        Schema::create('jobs', function (Blueprint $table) { //tabla para los trabajos en cola
             $table->id();
             $table->string('queue')->index();
             $table->longText('payload');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('created_at');
         });
 
-        Schema::create('job_batches', function (Blueprint $table) {
+        Schema::create('job_batches', function (Blueprint $table) { //tabla para los lotes de trabajos
             $table->string('id')->primary();
             $table->string('name');
             $table->integer('total_jobs');
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->integer('finished_at')->nullable();
         });
 
-        Schema::create('failed_jobs', function (Blueprint $table) {
+        Schema::create('failed_jobs', function (Blueprint $table) { //tabla para los trabajos fallidos
             $table->id();
             $table->string('uuid')->unique();
             $table->text('connection');
@@ -48,7 +48,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar las tablas creadas para los trabajos en cola
     {
         Schema::dropIfExists('jobs');
         Schema::dropIfExists('job_batches');

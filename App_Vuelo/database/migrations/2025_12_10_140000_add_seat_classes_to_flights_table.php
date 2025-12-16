@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void //   Agrega las columnas para las clases de asientos
     {
         Schema::table('flights', function (Blueprint $table) {
             $table->integer('economy_seats')->default(100)->after('capacity');
@@ -22,7 +22,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Elimina las columnas de las clases de asientos
     {
         Schema::table('flights', function (Blueprint $table) {
             $table->dropColumn(['economy_seats', 'business_seats', 'economy_price', 'business_price']);
