@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Crear las tablas necesarias para los usuarios
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
@@ -21,13 +21,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
+        Schema::create('password_reset_tokens', function (Blueprint $table) { //tabla para los tokens de restablecimiento de contraseñas
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
+        Schema::create('sessions', function (Blueprint $table) { //tabla para las sesiones de los usuarios
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
@@ -40,7 +40,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar las tablas creadas para los usuarios
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');

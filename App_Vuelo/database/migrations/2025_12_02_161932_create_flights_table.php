@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::create('flights', function (Blueprint $table) {
+    Schema::create('flights', function (Blueprint $table) { //tabla para los vuelos
         $table->id();
         $table->string('origin');       // Origen
         $table->string('destination');  // Destino
@@ -27,7 +27,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar la tabla de vuelos
     {
         Schema::dropIfExists('flights');
     }

@@ -7,7 +7,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// 2. Ruta para el LOGIN (¡Esta es la que te falta!)
+// 2. Ruta para el LOGIN 
 Route::get('/login', function () {
     return view('auth.login'); 
 })->name('login');

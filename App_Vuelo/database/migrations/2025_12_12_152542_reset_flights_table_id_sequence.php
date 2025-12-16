@@ -10,7 +10,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Resetear la secuencia de IDs de la tabla de vuelos
     {
         // Desactivar restricciones de clave foránea
         DB::statement('ALTER TABLE reservations NOCHECK CONSTRAINT ALL');
@@ -28,7 +28,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // No hay acción de reversión
     {
         // No hay nada que revertir, ya que truncate es irreversible
     }

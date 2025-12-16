@@ -10,36 +10,24 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens,HasFactory, Notifiable;
+    use HasApiTokens,HasFactory, Notifiable; 
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
+    
+    protected $fillable = [ // Campos que se llenan
         'name',
         'email',
         'password', 
         'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
+    
+    protected $hidden = [ // Campos ocultos
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    
+    protected function casts(): array // tipos de datos
     {
         return [
             'email_verified_at' => 'datetime',
@@ -50,10 +38,10 @@ class User extends Authenticatable
     // Relación: Un usuario puede tener muchas reservas
     public function reservations()
     {
-        return $this->hasMany(Reservation::class);
+        return $this->hasMany(Reservation::class); // 1-m
     }
     
-    // Función auxiliar para saber si es admin (útil para el Frontend después)
+    // Función  para saber si es admin 
     public function isAdmin()
     {
         return $this->role === 'admin';

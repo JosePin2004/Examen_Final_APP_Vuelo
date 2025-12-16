@@ -11,7 +11,7 @@ return new class extends Migration
      */
    public function up(): void
 {
-    Schema::create('reservations', function (Blueprint $table) {
+    Schema::create('reservations', function (Blueprint $table) { //tabla para las reservas de vuelos
         $table->id();
         // Relación con el usuario que compra
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -32,7 +32,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar la tabla de reservas de vuelos
     {
         Schema::dropIfExists('reservations');
     }

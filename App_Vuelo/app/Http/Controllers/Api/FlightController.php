@@ -16,7 +16,6 @@ class FlightController extends Controller
     //
 
 
-
     // 1. LISTAR VUELOS (Público)
     public function index()
     {
@@ -38,7 +37,7 @@ class FlightController extends Controller
 
     // 3. CREAR VUELO (Solo Admin)
     public function store(Request $request)
-    {
+    { 
         // 1. Verificar admin
         if (Auth::user()->role !== 'admin') {
         return response()->json(['message' => 'No autorizado'], 403);
@@ -49,7 +48,7 @@ class FlightController extends Controller
         'origin' => 'required|string|max:100',
         'destination' => 'required|string|max:100',
         'departure_time' => 'required|date_format:Y-m-d\TH:i',
-        // Nota: Asegúrate de que el nombre del campo coincida con tu HTML (departure_time vs departure_date)
+        // Nota:El nombre del campo debe coincidir con el HTML (departure_time vs departure_date)
         'arrival_time' => 'required|date_format:Y-m-d\TH:i', 
         'price' => 'nullable|numeric|min:0.01',
         'economy_price' => 'required|numeric|min:0.01',
@@ -70,7 +69,7 @@ class FlightController extends Controller
             'economy_price' => $request->economy_price,
             'business_price' => $request->business_price,
             
-            // AQUÍ ESTÁ LA MAGIA: Guardamos lo que el JS puso en el input hidden
+            // AQUÍ ESTÁ LO IMPORTANTE: Guardamos lo que el JS puso en el input hidden
             'image_url' => $request->image_url, 
         ]);
 
@@ -198,19 +197,19 @@ class FlightController extends Controller
     // 6. OBTENER CLIMA DEL DESTINO (Público)
     public function weather($id, WeatherService $weatherService)
     {
-        $flight = Flight::findOrFail($id);
+        $flight = Flight::findOrFail($id); // Obtener vuelo
 
-        $city = $flight->destination;
-        $weather = $weatherService->getCurrentByCity($city);
+        $city = $flight->destination; // Usar destino del vuelo
+        $weather = $weatherService->getCurrentByCity($city); // Obtener clima: esto proceso se realiza en el servicio
 
-        if (!$weather) {
+        if (!$weather) { // Si falla, retornar error
             return response()->json([
                 'success' => false,
                 'message' => 'No se pudo obtener el clima. Verifique OPENWEATHER_API_KEY.',
             ], 503);
         }
 
-        return response()->json([
+        return response()->json([  // si funciona, retornar datos
             'success' => true,
             'city' => $city,
             'data' => $weather,
@@ -220,41 +219,41 @@ class FlightController extends Controller
     // 7. SUBIR IMAGEN A FIREBASE/LOCAL (Solo Admin)
     public function uploadImage(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {  // Verificar que sea admin
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        $request->validate([
+        $request->validate([ // Validar imagen
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
-        try {
-            $imageUrl = null;
+        try {   
+            $imageUrl = null; 
             $error = null;
 
             // Intentar subir a Firebase primero
-            if (FirebaseService::isConfigured()) {
+            if (FirebaseService::isConfigured()) { 
                 try {
-                    $firebase = new FirebaseService();
-                    $imageUrl = $firebase->uploadImage($request->file('image'), 'vuelos');
-                    Log::info('Image uploaded to Firebase: ' . $imageUrl);
+                    $firebase = new FirebaseService(); // verifica configuracion de firebase
+                    $imageUrl = $firebase->uploadImage($request->file('image'), 'vuelos'); // Subir imagen
+                    Log::info('Image uploaded to Firebase: ' . $imageUrl); // exito
                 } catch (\Exception $firebaseError) {
-                    Log::warning('Firebase error: ' . $firebaseError->getMessage());
+                    Log::warning('Firebase error: ' . $firebaseError->getMessage()); // fallo
                     $error = $firebaseError->getMessage();
                     
                     // Fallback: Guardar localmente
                     try {
-                        $file = $request->file('image');
-                        $filename = 'vuelos/' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                        $path = $file->storePublicly($filename, 'public');
-                        $imageUrl = asset('storage/' . $path);
-                        Log::info('Image saved locally (Firebase failed): ' . $imageUrl);
+                        $file = $request->file('image'); // Obtener archivo
+                        $filename = 'vuelos/' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension(); // Crear nombre unico
+                        $path = $file->storePublicly($filename, 'public'); // Guardar en storage/app/public/vuelos
+                        $imageUrl = asset('storage/' . $path); // Crear URL 
+                        Log::info('Image saved locally (Firebase failed): ' . $imageUrl); // exito 
                     } catch (\Exception $localError) {
-                        Log::error('Local storage error: ' . $localError->getMessage());
+                        Log::error('Local storage error: ' . $localError->getMessage()); // fallo
                     }
                 }
             } else {
-                // Firebase no configurado, guardar localmente
+                // Firebase no configurado, guardar localmente lo mismo qu el fallback
                 try {
                     $file = $request->file('image');
                     $filename = 'vuelos/' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
@@ -266,23 +265,23 @@ class FlightController extends Controller
                 }
             }
 
-            if ($imageUrl) {
+            if ($imageUrl) {  // Si se pudo subir la imagen
                 return response()->json([
                     'success' => true,
                     'image_url' => $imageUrl,
                     'message' => 'Imagen subida exitosamente',
-                    'source' => strpos($imageUrl, 'storage.googleapis.com') ? 'firebase' : 'local'
+                    'source' => strpos($imageUrl, 'storage.googleapis.com') ? 'firebase' : 'local' // Indicar origen
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se pudo subir la imagen: ' . ($error || 'Error desconocido')
+                    'message' => 'No se pudo subir la imagen: ' . ($error || 'Error desconocido') // Mostrar error
                 ], 500);
             }
 
-        } catch (\Exception $e) {
+        } catch (\Exception $e) {  // En caso de error
             Log::error('Error subiendo imagen: ' . $e->getMessage());
-            return response()->json([
+            return response()->json([  
                 'success' => false,
                 'message' => 'Error al subir imagen: ' . $e->getMessage()
             ], 500);

@@ -79,10 +79,12 @@
     </footer>
 
     <script>
+        // CUANDO LA PÁGINA CARGUE → OBTENER VUELOS
         document.addEventListener('DOMContentLoaded', () => {
             loadFlights();
         });
 
+        // OBTENER ESTADO DE AUTENTICACIÓN DEL SERVIDOR
         const isAuth = {{ auth()->check() ? 'true' : 'false' }};
         const dashboardUrl = '{{ url('/dashboard') }}';
         const loginUrl = '{{ route('login') }}';
@@ -102,13 +104,16 @@
             const catalogContainer = document.getElementById('catalog-grid');
 
             try {
+                // GET /api/flights - Obtener todos los vuelos del backend
                 const response = await fetch('/api/flights');
                 const data = await response.json();
                 const flights = data.data || data || [];
 
+                // Renderizar preview (primeros 4 vuelos) y catálogo completo
                 renderPreview(previewContainer, flights.slice(0, 4));
                 renderCatalog(catalogContainer, flights);
             } catch (error) {
+                // SI HAY ERROR → Mostrar mensaje en ambos contenedores
                 previewContainer.innerHTML = `<div class="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">No se pudieron cargar los vuelos.</div>`;
                 catalogContainer.innerHTML = `<div class="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">No se pudo cargar el catálogo.</div>`;
                 console.error('Error cargando vuelos:', error);
@@ -123,6 +128,7 @@
                 return;
             }
 
+            // RENDERIZAR CADA VUELO EN TARJETA
             flights.forEach(flight => {
                 const card = document.createElement('div');
                 card.className = 'rounded-lg border border-white/10 bg-white/5 p-4 text-gray-200 shadow-sm hover:border-red-400/60 transition';
@@ -202,6 +208,7 @@
             target.textContent = 'Cargando clima...';
 
             try {
+                // GET /api/flights/{id}/weather - Obtener clima del destino
                 const response = await fetch(`/api/flights/${flightId}/weather`);
                 const data = await response.json();
 
@@ -210,6 +217,7 @@
                     return;
                 }
 
+                // MOSTRAR CLIMA: temperatura, descripción, humedad
                 const w = data.data;
                 target.innerHTML = `
                     <span class="font-semibold text-red-200">${w.temp_c ?? '?'}°C</span>
@@ -223,6 +231,8 @@
         }
 
         function handleReservation(flightId) {
+            // SI ESTÁ AUTENTICADO → Redirigir al dashboard
+            // SI NO → Redirigir al login
             if (isAuth) {
                 window.location.href = `${dashboardUrl}?flight=${flightId}`;
             } else {

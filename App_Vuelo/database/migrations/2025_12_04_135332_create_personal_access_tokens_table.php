@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up(): void // Crear la tabla para los tokens de acceso personal
     {
-        Schema::create('personal_access_tokens', function (Blueprint $table) {
+        Schema::create('personal_access_tokens', function (Blueprint $table) { //tabla para los tokens de acceso personal
             $table->id();
             $table->morphs('tokenable');
             $table->text('name');
@@ -26,7 +26,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down(): void // Eliminar la tabla de tokens de acceso personal
     {
         Schema::dropIfExists('personal_access_tokens');
     }

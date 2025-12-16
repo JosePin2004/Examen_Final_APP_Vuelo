@@ -10,7 +10,7 @@ use App\Models\Flight; // Importamos el modelo de Vuelos
 
 class ReservationController extends Controller
 {
-    // 1. LISTAR (Ya lo tenías)
+    // 1. LISTAR recervas del usuario logueado
     public function index()
     {
         $reservas = Reservation::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
@@ -42,7 +42,7 @@ class ReservationController extends Controller
 
         // Obtener el vuelo para calcular el precio
         $flight = \App\Models\Flight::find($request->flight_id);
-        $price = $request->seat_class === 'economy' ? $flight->economy_price : $flight->business_price;
+        $price = $request->seat_class === 'economy' ? $flight->economy_price : $flight->business_price; // Asignar precio según clase
 
         $reserva = Reservation::create([
             'user_id' => Auth::id(),

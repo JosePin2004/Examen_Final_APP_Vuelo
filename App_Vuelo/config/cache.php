@@ -2,35 +2,13 @@
 
 use Illuminate\Support\Str;
 
-return [
+return [ //configuracion de la cache
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Cache Store
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the default cache store that will be used by the
-    | framework. This connection is utilized if another isn't explicitly
-    | specified when running a cache operation inside the application.
-    |
-    */
+    
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', 'database'), //tienda de cache por defecto
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cache Stores
-    |--------------------------------------------------------------------------
-    |
-    | Here you may define all of the cache "stores" for your application as
-    | well as their drivers. You may even define multiple stores for the
-    | same cache driver to group types of items stored in your caches.
-    |
-    | Supported drivers: "apc", "array", "database", "file", "memcached",
-    |                    "redis", "dynamodb", "octane", "null"
-    |
-    */
-
+    
     'stores' => [
 
         'array' => [
@@ -38,20 +16,20 @@ return [
             'serialize' => false,
         ],
 
-        'database' => [
+        'database' => [ //configuracion de la cache en base de datos
             'driver' => 'database',
             'table' => env('DB_CACHE_TABLE', 'cache'),
             'connection' => env('DB_CACHE_CONNECTION', null),
             'lock_connection' => env('DB_CACHE_LOCK_CONNECTION', null),
         ],
 
-        'file' => [
+        'file' => [ //configuracion de la cache en archivos
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),
             'lock_path' => storage_path('framework/cache/data'),
         ],
 
-        'memcached' => [
+        'memcached' => [ //configuracion de la cache en memcached
             'driver' => 'memcached',
             'persistent_id' => env('MEMCACHED_PERSISTENT_ID'),
             'sasl' => [
@@ -69,14 +47,14 @@ return [
                 ],
             ],
         ],
-
-        'redis' => [
+ 
+        'redis' => [ //configuracion de la cache en redis
             'driver' => 'redis',
             'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
-        'dynamodb' => [
+        'dynamodb' => [ //configuracion de la cache en dynamodb
             'driver' => 'dynamodb',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -85,23 +63,14 @@ return [
             'endpoint' => env('DYNAMODB_ENDPOINT'),
         ],
 
-        'octane' => [
+        'octane' => [ //    configuracion de la cache en octane
             'driver' => 'octane',
         ],
 
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cache Key Prefix
-    |--------------------------------------------------------------------------
-    |
-    | When utilizing the APC, database, memcached, Redis, and DynamoDB cache
-    | stores, there might be other applications using the same cache. For
-    | that reason, you may prefix every cache key to avoid collisions.
-    |
-    */
+    
 
-    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
+    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'), //prefijo para las claves de la cache
 
 ];
